@@ -28,10 +28,7 @@ import { ThemeColors } from '@/constants/colors';
 import { useTheme } from '@/providers/ThemeProvider';
 import { useChess } from '@/providers/ChessProvider';
 import { t } from '@/utils/translations';
-import {
-  completeOnboarding,
-  markOnboardingReviewedFromSettings,
-} from '@/utils/onboardingStorage';
+import { completeOnboarding } from '@/utils/onboardingStorage';
 
 const { width: SW } = Dimensions.get('window');
 
@@ -77,7 +74,6 @@ export default function OnboardingScreen() {
         await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
       }
       if (fromSettings) {
-        await markOnboardingReviewedFromSettings();
         router.back();
         return;
       }
