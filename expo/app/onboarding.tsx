@@ -20,6 +20,7 @@ import {
   Map,
   Swords,
   MessageCircle,
+  Languages,
   type LucideIcon,
 } from 'lucide-react-native';
 import { ThemeColors } from '@/constants/colors';
@@ -46,7 +47,7 @@ const SLIDES: SlideConfig[] = [
 
 export default function OnboardingScreen() {
   const { colors } = useTheme();
-  const { language } = useChess();
+  const { language, toggleLanguage } = useChess();
   const router = useRouter();
   const scrollRef = useRef<ScrollView>(null);
   const [page, setPage] = useState(0);
@@ -80,6 +81,13 @@ export default function OnboardingScreen() {
     if (idx !== page) setPage(idx);
   }, [page]);
 
+  const handleToggleLanguage = useCallback(() => {
+    if (Platform.OS !== 'web') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    toggleLanguage();
+  }, [toggleLanguage]);
+
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
@@ -93,6 +101,10 @@ export default function OnboardingScreen() {
       />
 
       <View style={styles.topBar}>
+        <Pressable onPress={handleToggleLanguage} style={styles.langBtn}>
+          <Languages size={14} color="#6B7280" />
+          <Text style={styles.langBtnText}>{language === 'ja' ? 'EN' : 'JA'}</Text>
+        </Pressable>
         <Pressable onPress={finish} hitSlop={12} style={styles.skipBtn}>
           <Text style={styles.skipText}>{t('onboarding_skip', language)}</Text>
         </Pressable>
@@ -169,9 +181,33 @@ function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
     container: { flex: 1 },
     topBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
       paddingTop: Platform.OS === 'ios' ? 56 : 40,
       paddingHorizontal: 24,
-      alignItems: 'flex-end',
+    },
+    langBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 5,
+      paddingHorizontal: 14,
+      paddingVertical: 8,
+      borderRadius: 20,
+      backgroundColor: 'rgba(255,255,255,0.85)',
+      borderWidth: 1,
+      borderColor: 'rgba(139,92,246,0.12)',
+      ...Platform.select({
+        ios: { shadowColor: '#8B5CF6', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 6 },
+        android: { elevation: 2 },
+        web: { boxShadow: '0 2px 8px rgba(139,92,246,0.08)' } as object,
+      }),
+    },
+    langBtnText: {
+      fontSize: 12,
+      fontWeight: '700',
+      color: '#6B7280',
+      letterSpacing: 0.5,
     },
     skipBtn: {
       paddingHorizontal: 14,
