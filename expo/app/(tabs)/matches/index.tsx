@@ -37,6 +37,7 @@ import { useAuth } from '@/providers/AuthProvider';
 import { useChess } from '@/providers/ChessProvider';
 import { Player } from '@/types';
 import { supabase } from '@/utils/supabaseClient';
+import { fetchProfileMatchStatsBatch } from '@/utils/matchStatsBatch';
 import { resolveAvatarUrl } from '@/utils/avatarUrl';
 import { getCountryFlag, getCountryName } from '@/utils/translations';
 import { ReportButton } from '@/components/ReportButton';
@@ -140,12 +141,7 @@ function useDiscoverProfiles(currentUserId: string | undefined) {
         return;
       }
 
-      const ids = profileRows.map((r: { id: string }) => r.id);
-      const { data: statsRows } = await supabase.rpc('get_profile_match_stats_batch', { p_profile_ids: ids });
-      const statsMap = new Map<string, { games_played: number; wins: number; losses: number; draws: number }>();
-      (statsRows ?? []).forEach((r: { profile_id: string; games_played: number; wins: number; losses: number; draws: number }) => {
-        statsMap.set(r.profile_id, { games_played: r.games_played ?? 0, wins: r.wins ?? 0, losses: r.losses ?? 0, draws: r.draws ?? 0 });
-      });
+      const statsMap = await fetchProfileMatchStatsBatch(supabase, profileRows);
 
       const shuffled: DiscoverProfile[] = profileRows
         .map((r: any) => {

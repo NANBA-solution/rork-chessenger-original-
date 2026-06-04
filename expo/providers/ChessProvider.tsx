@@ -7,6 +7,7 @@ import { Match, MatchStatus, MatchRating, Player, UserProfile, TimelinePost, Tim
 import { useLocation, calculateDistance, roundCoordinatesForPrivacy } from '@/providers/LocationProvider';
 import { Language, isRTL, SUPPORTED_LANGUAGES, t } from '@/utils/translations';
 import { supabase, supabaseNoAuth, clearStaleSession } from '@/utils/supabaseClient';
+import { fetchProfileMatchStatsBatch } from '@/utils/matchStatsBatch';
 import { resolveAvatarUrl } from '@/utils/avatarUrl';
 import {
   calculateElo,
@@ -737,12 +738,10 @@ export const [ChessProvider, useChess] = createContextHook(() => {
           console.warn('ChessProvider: profiles load error', nearbyError.code, nearbyError.message);
         }
         if (profileRows && !nearbyError && profileRows.length > 0) {
-          const ids = profileRows.map((p: { id: string }) => p.id);
-          const { data: statsRows } = await supabaseNoAuth.rpc('get_profile_match_stats_batch', { p_profile_ids: ids });
-          const statsMap = new Map<string, { games_played: number; wins: number; losses: number; draws: number }>();
-          (statsRows ?? []).forEach((r: { profile_id: string; games_played: number; wins: number; losses: number; draws: number }) => {
-            statsMap.set(r.profile_id, { games_played: r.games_played ?? 0, wins: r.wins ?? 0, losses: r.losses ?? 0, draws: r.draws ?? 0 });
-          });
+          const statsMap = await fetchProfileMatchStatsBatch(
+            supabaseNoAuth,
+            profileRows as Array<{ id: string } & Record<string, unknown>>,
+          );
           const nearbyProfiles: SupabaseProfile[] = profileRows.map((p: Record<string, unknown>) => {
             const s = statsMap.get(p.id as string) ?? { games_played: 0, wins: 0, losses: 0, draws: 0 };
             return { ...p, games_played: s.games_played, wins: s.wins, losses: s.losses, draws: s.draws } as SupabaseProfile;
@@ -1378,12 +1377,10 @@ export const [ChessProvider, useChess] = createContextHook(() => {
         return;
       }
       if (profileRows && profileRows.length > 0) {
-        const ids = profileRows.map((p: { id: string }) => p.id);
-        const { data: statsRows } = await supabaseNoAuth.rpc('get_profile_match_stats_batch', { p_profile_ids: ids });
-        const statsMap = new Map<string, { games_played: number; wins: number; losses: number; draws: number }>();
-        (statsRows ?? []).forEach((r: { profile_id: string; games_played: number; wins: number; losses: number; draws: number }) => {
-          statsMap.set(r.profile_id, { games_played: r.games_played ?? 0, wins: r.wins ?? 0, losses: r.losses ?? 0, draws: r.draws ?? 0 });
-        });
+        const statsMap = await fetchProfileMatchStatsBatch(
+          supabaseNoAuth,
+          profileRows as Array<{ id: string } & Record<string, unknown>>,
+        );
         const nearbyProfiles: SupabaseProfile[] = profileRows.map((p: Record<string, unknown>) => {
           const s = statsMap.get(p.id as string) ?? { games_played: 0, wins: 0, losses: 0, draws: 0 };
           return { ...p, games_played: s.games_played, wins: s.wins, losses: s.losses, draws: s.draws } as SupabaseProfile;

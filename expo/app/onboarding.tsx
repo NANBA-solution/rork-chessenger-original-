@@ -103,7 +103,7 @@ export default function OnboardingScreen() {
   }, [toggleLanguage]);
 
   if (exitToApp) {
-    return <Redirect href="/(tabs)" />;
+    return <Redirect href="/(tabs)/(home)" />;
   }
 
   return (
