@@ -7,6 +7,7 @@ import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect, useState, useCallback } from "react";
 import { LogBox, Platform, View, StatusBar } from "react-native";
 import * as Linking from "expo-linking";
+import { extractPlayerIdFromUrl } from "@/utils/deepLinks";
 import { setupNotificationHandler } from "@/utils/notifications";
 setupNotificationHandler();
 
@@ -36,17 +37,9 @@ function RootLayoutNav() {
   // ディープリンク rork-app://player/:id の処理
   useEffect(() => {
     const handleUrl = (url: string) => {
-      try {
-        const parsed = Linking.parse(url);
-        // rork-app://player/SOME_UUID
-        if (parsed.scheme === 'rork-app' && parsed.hostname === 'player' && parsed.path) {
-          const playerId = parsed.path.replace(/^\//, '');
-          if (playerId) {
-            router.push(`/player/${playerId}` as any);
-          }
-        }
-      } catch {
-        // ignore parse errors
+      const playerId = extractPlayerIdFromUrl(url);
+      if (playerId) {
+        router.push(`/player/${playerId}` as any);
       }
     };
 

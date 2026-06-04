@@ -21,6 +21,7 @@ import { ThemeColors } from '@/constants/colors';
 import { useTheme } from '@/providers/ThemeProvider';
 import { useChess } from '@/providers/ChessProvider';
 import { useAuth } from '@/providers/AuthProvider';
+import { useAuth } from '@/providers/AuthProvider';
 import { SkillLevel, PlayStyle } from '@/types';
 import { t, COUNTRY_OPTIONS, getCountryFlag, getCountryName } from '@/utils/translations';
 import { supabaseNoAuth } from '@/utils/supabaseClient';
@@ -40,7 +41,14 @@ export default function EditProfileScreen() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { profile, profileLoaded, updateProfile, language } = useChess();
+  const { isLoggedIn } = useAuth();
   const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      router.replace('/login' as any);
+    }
+  }, [isLoggedIn, router]);
 
   const [name, setName] = useState<string>('');
   const [bio, setBio] = useState<string>('');

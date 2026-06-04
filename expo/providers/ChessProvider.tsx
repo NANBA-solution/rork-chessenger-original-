@@ -9,6 +9,7 @@ import { Language, isRTL, SUPPORTED_LANGUAGES, t } from '@/utils/translations';
 import { getInitialAppLanguage } from '@/utils/initialLanguage';
 import { supabase, supabaseNoAuth, clearStaleSession } from '@/utils/supabaseClient';
 import { fetchProfileMatchStatsBatch } from '@/utils/matchStatsBatch';
+import { isValidAuthUserId } from '@/utils/authUserId';
 import { resolveAvatarUrl } from '@/utils/avatarUrl';
 import {
   calculateElo,
@@ -256,6 +257,7 @@ export const [ChessProvider, useChess] = createContextHook(() => {
   const refreshTimelineRef = useRef<() => Promise<void>>(null);
   const translationLockRef = useRef<boolean>(false);
   const realtimeErrorLogLast = useRef<Record<string, number>>({});
+  const dataLoadGenerationRef = useRef(0);
 
   useEffect(() => {
     const initSession = async () => {
@@ -292,6 +294,7 @@ export const [ChessProvider, useChess] = createContextHook(() => {
         setCurrentUserId(session.user.id);
         setAuthReady(prev => !prev);
       } else if (event === 'SIGNED_OUT') {
+        dataLoadGenerationRef.current += 1;
         // ログアウト直前にキャッシュへ保存（お気に入りを永続化）
         const toSave = favoritePlayersRef.current;
         if (toSave.length > 0) {
@@ -300,7 +303,7 @@ export const [ChessProvider, useChess] = createContextHook(() => {
         setCurrentUserId(null);
         setAccessToken(null);
         setProfile(defaultProfile);
-        setProfileLoaded(false);
+        setProfileLoaded(true);
         setSupabasePlayers([]);
         setMatches([]);
         setTimelinePosts([]);
@@ -673,6 +676,9 @@ export const [ChessProvider, useChess] = createContextHook(() => {
 
   useEffect(() => {
     const loadSupabaseData = async () => {
+      const loadGen = ++dataLoadGenerationRef.current;
+      const isStale = () => loadGen !== dataLoadGenerationRef.current;
+
       try {
         let userId: string | null = null;
         try {
@@ -699,6 +705,8 @@ export const [ChessProvider, useChess] = createContextHook(() => {
             .select('*')
             .eq('id', userId)
             .maybeSingle();
+
+          if (isStale()) return;
 
           if (profileData && !profileError) {
             console.log('ChessProvider: Loaded profile from Supabase', profileData.name);
@@ -739,27 +747,23 @@ export const [ChessProvider, useChess] = createContextHook(() => {
           }
         }
 
-        let profilesQuery = supabaseNoAuth.from('profiles').select('*');
-        if (userId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId)) {
+        if (isStale()) return;
+
+        let profilesQuery = supabaseNoAuth.from('profiles_with_match_stats').select('*');
+        if (isValidAuthUserId(userId)) {
           profilesQuery = profilesQuery.neq('id', userId);
         }
         const { data: profileRows, error: nearbyError } = await profilesQuery;
 
         if (nearbyError && __DEV__) {
-          console.warn('ChessProvider: profiles load error', nearbyError.code, nearbyError.message);
+          console.warn('ChessProvider: profiles_with_match_stats load error', nearbyError.code, nearbyError.message);
         }
+        if (isStale()) return;
+
         if (profileRows && !nearbyError && profileRows.length > 0) {
-          const statsMap = await fetchProfileMatchStatsBatch(
-            supabaseNoAuth,
-            profileRows as Array<{ id: string } & Record<string, unknown>>,
-          );
-          const nearbyProfiles: SupabaseProfile[] = profileRows.map((p: Record<string, unknown>) => {
-            const s = statsMap.get(p.id as string) ?? { games_played: 0, wins: 0, losses: 0, draws: 0 };
-            return { ...p, games_played: s.games_played, wins: s.wins, losses: s.losses, draws: s.draws } as SupabaseProfile;
-          });
           const userLat = userLocation?.latitude;
           const userLon = userLocation?.longitude;
-          const converted = nearbyProfiles.map((p: SupabaseProfile) =>
+          const converted = (profileRows as SupabaseProfile[]).map((p) =>
             supabaseProfileToPlayer(p, userLat, userLon)
           );
           setSupabasePlayers(converted);
@@ -1529,6 +1533,9 @@ export const [ChessProvider, useChess] = createContextHook(() => {
     setLanguage(lang);
     try {
       await AsyncStorage.setItem(LANGUAGE_KEY, lang);
+      if (Platform.OS === 'web' && typeof localStorage !== 'undefined') {
+        localStorage.setItem(LANGUAGE_KEY, lang);
+      }
     } catch (e) {
       console.log('ChessProvider: Failed to save language', e);
     }
@@ -1669,14 +1676,9 @@ export const [ChessProvider, useChess] = createContextHook(() => {
         }
       }
 
-      if (!userId || userId === 'me') {
-        userId = profile.id !== 'me' ? profile.id : null;
-      }
-
-      if (!userId || userId === 'me') {
-        const fallbackId = 'anonymous-' + Date.now();
-        console.log('Profile update: No user ID available, using fallback', fallbackId);
-        userId = fallbackId;
+      if (!isValidAuthUserId(userId)) {
+        console.log('Profile update: No authenticated user — local only, skip Supabase upsert');
+        return true;
       }
 
       const supabaseUpdates: Record<string, unknown> = {};
@@ -1719,7 +1721,15 @@ export const [ChessProvider, useChess] = createContextHook(() => {
       try {
         console.log('Attempting emergency save with no-auth client...');
         await clearStaleSession();
-        const emergencyId = currentUserId && currentUserId !== 'me' ? currentUserId : (profile.id !== 'me' ? profile.id : 'anonymous-' + Date.now());
+        const emergencyId = isValidAuthUserId(currentUserId)
+          ? currentUserId
+          : isValidAuthUserId(profile.id)
+            ? profile.id
+            : null;
+        if (!emergencyId) {
+          console.log('EMERGENCY SAVE skipped: no valid user id');
+          return false;
+        }
         const payload: Record<string, unknown> = { id: emergencyId, last_seen: new Date().toISOString() };
         if (updates.name !== undefined) payload.name = updates.name;
         if (updates.bio !== undefined) payload.bio = updates.bio;

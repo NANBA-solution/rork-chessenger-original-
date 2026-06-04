@@ -276,8 +276,17 @@ export default function LoginScreen() {
           skillLevel: 'beginner',
         });
         if (result.success) {
-          playLoginSuccessSound().catch(() => {});
-          router.replace('/(tabs)' as any);
+          if ('pendingVerification' in result && result.pendingVerification) {
+            Alert.alert(
+              language === 'ja' ? '確認メールを送信しました' : 'Check your email',
+              language === 'ja'
+                ? 'メール内のリンクを開いてからログインしてください。'
+                : 'Open the link in your email, then sign in.',
+            );
+          } else {
+            playLoginSuccessSound().catch(() => {});
+            router.replace('/(tabs)' as any);
+          }
         }
       }
     } finally {

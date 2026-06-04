@@ -43,6 +43,8 @@ import { resolveAvatarUrl } from '@/utils/avatarUrl';
 import { SafeImage } from '@/components/SafeImage';
 import { ReportButton } from '@/components/ReportButton';
 import { supabase } from '@/utils/supabaseClient';
+import { extractPlayerIdFromUrl } from '@/utils/deepLinks';
+import { isValidAuthUserId } from '@/utils/authUserId';
 
 const PLAY_STYLE_META: { key: PlayStyle; labelKey: string; emoji: string }[] = [
   { key: 'casual', labelKey: 'play_style_casual', emoji: '🎲' },
@@ -88,7 +90,12 @@ export default function ProfileScreen() {
   const qrModalScale = useRef(new Animated.Value(0.85)).current;
   const qrModalOpacity = useRef(new Animated.Value(0)).current;
 
-  const profileDeepLink = `rork-app://player/${profile?.id ?? user?.id ?? ''}`;
+  const profileIdForLink = isValidAuthUserId(profile?.id)
+    ? profile.id
+    : isValidAuthUserId(user?.id)
+      ? user.id
+      : '';
+  const profileDeepLink = profileIdForLink ? `rork-app://player/${profileIdForLink}` : '';
 
   const openQR = useCallback(() => {
     setScanMode(false);
@@ -134,10 +141,8 @@ export default function ProfileScreen() {
     scannedRef.current = true;
     setScanResult(data);
 
-    // rork-app://player/{id} 形式を解析
-    const match = data.match(/^rork-app:\/\/player\/([^/?#]+)/);
-    if (match && match[1]) {
-      const playerId = match[1];
+    const playerId = extractPlayerIdFromUrl(data);
+    if (playerId) {
       setScanMode(false);
       closeQR();
       setTimeout(() => {

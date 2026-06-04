@@ -11,7 +11,8 @@ const AUTH_KEY = 'chess_auth_user';
 const SESSION_STARTED_KEY = 'chess_session_started_at';
 const SESSION_TIMEOUT_HOURS = 8;
 const SESSION_TIMEOUT_MS = SESSION_TIMEOUT_HOURS * 60 * 60 * 1000;
-const ALL_STORAGE_KEYS = ['chess_auth_user', 'chess_theme_mode', 'chess_language', SESSION_STARTED_KEY];
+/** ログアウト・セッション切れ時に消すキー（言語・テーマは残す） */
+const AUTH_STORAGE_KEYS = [AUTH_KEY, SESSION_STARTED_KEY];
 
 export const [AuthProvider, useAuth] = createContextHook(() => {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -96,7 +97,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
         if (msg.includes('Invalid Refresh Token') || msg.includes('Refresh Token Not Found') || msg.includes('AuthApiError')) {
           console.log('Auth: Invalid refresh token on app resume, signing out');
           await supabase.auth.signOut({ scope: 'local' });
-          await AsyncStorage.multiRemove(ALL_STORAGE_KEYS).catch(() => {});
+          await AsyncStorage.multiRemove(AUTH_STORAGE_KEYS).catch(() => {});
           setUser(null);
           if (initialLoadDone.current) {
             try { router.replace('/login' as any); } catch (e) { console.log('Auth: Nav to login failed', e); }
@@ -113,7 +114,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
       if (elapsed > SESSION_TIMEOUT_MS) {
         console.log('Auth: Session timeout after', Math.round(elapsed / 3600000), 'hours, signing out');
         await supabase.auth.signOut({ scope: 'local' });
-        await AsyncStorage.multiRemove(ALL_STORAGE_KEYS);
+        await AsyncStorage.multiRemove(AUTH_STORAGE_KEYS);
         setUser(null);
         if (initialLoadDone.current) {
           try { router.replace('/login' as any); } catch (e) { console.log('Auth: Nav to login failed', e); }
@@ -149,7 +150,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
             if (isInvalidToken) {
               console.log('Auth: Invalid refresh token, clearing session');
               await supabase.auth.signOut({ scope: 'local' });
-              await AsyncStorage.multiRemove(ALL_STORAGE_KEYS).catch(() => {});
+              await AsyncStorage.multiRemove(AUTH_STORAGE_KEYS).catch(() => {});
             }
             setUser(null);
             console.log('Auth: No valid session (getUser failed)');
@@ -180,39 +181,30 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
           console.log('Auth: Invalid refresh token in catch - clearing and NOT falling back to storage');
           setUser(null);
           await supabase.auth.signOut({ scope: 'local' }).catch(() => {});
-          await AsyncStorage.multiRemove(ALL_STORAGE_KEYS).catch(() => {});
+          await AsyncStorage.multiRemove(AUTH_STORAGE_KEYS).catch(() => {});
           if (typeof localStorage !== 'undefined') {
             try { localStorage.removeItem(AUTH_KEY); } catch { /* ignore */ }
           }
         } else {
-          // トークンエラー以外: 従来どおり AsyncStorage / localStorage フォールバック
-          try {
-            const stored = await AsyncStorage.getItem(AUTH_KEY);
-            if (stored) {
-              const parsed = JSON.parse(stored) as AuthUser;
-              if (parsed.id && parsed.id !== 'me') {
-                setUser(parsed);
-                console.log('Auth: Fallback to AsyncStorage', parsed.name);
-              } else {
-                await AsyncStorage.removeItem(AUTH_KEY);
-              }
+          const { data: { session: retrySession } } = await supabase.auth.getSession();
+          if (retrySession?.user) {
+            const defaultAvatar = 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=200&h=200&fit=crop&crop=face';
+            const authUser = await loadProfileFromSupabase(
+              retrySession.user.id,
+              retrySession.user.email ?? '',
+              retrySession.user.user_metadata?.name ?? retrySession.user.email?.split('@')[0] ?? '',
+              defaultAvatar,
+            );
+            setUser(authUser);
+            await AsyncStorage.setItem(AUTH_KEY, JSON.stringify(authUser));
+            console.log('Auth: Recovered user from active session after load error');
+          } else {
+            await AsyncStorage.removeItem(AUTH_KEY).catch(() => {});
+            if (typeof localStorage !== 'undefined') {
+              try { localStorage.removeItem(AUTH_KEY); } catch { /* ignore */ }
             }
-          } catch (err) {
-            console.log('Auth: AsyncStorage fallback failed', err);
-          }
-          if (typeof localStorage !== 'undefined') {
-            try {
-              const lsStored = localStorage.getItem('chess_auth_user');
-              if (lsStored) {
-                const parsed = JSON.parse(lsStored) as AuthUser;
-                if (parsed.id && parsed.id !== 'me') {
-                  setUser(parsed);
-                  console.log('Auth: Fallback to localStorage', parsed.name);
-                }
-              }
-            } catch (lsErr) {
-              console.log('Auth: localStorage fallback failed', lsErr);
-            }
+            setUser(null);
+            console.log('Auth: No session — cleared cached user (no storage fallback)');
           }
         }
       } finally {
@@ -337,7 +329,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
     }
   }, [loadProfileFromSupabase, ensureProfileExists]);
 
-  const register = useCallback(async (name: string, email: string, password: string, profileData?: { chessComRating?: number | null; lichessRating?: number | null; bio?: string; skillLevel?: string }): Promise<{ success: boolean; error?: string }> => {
+  const register = useCallback(async (name: string, email: string, password: string, profileData?: { chessComRating?: number | null; lichessRating?: number | null; bio?: string; skillLevel?: string }): Promise<{ success: boolean; error?: string; pendingVerification?: boolean }> => {
     try {
       console.log('Auth: Attempting Supabase register for', email, 'with username:', name);
 
@@ -394,35 +386,37 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
           console.log('Auth: Profile row created in Supabase for', trimmedName);
         }
 
-        const authUser: AuthUser = {
-          id: data.user.id,
-          email: data.user.email ?? email,
-          name: trimmedName,
-          avatar: defaultAvatar,
-          isLoggedIn: true,
-        };
-        await AsyncStorage.setItem(AUTH_KEY, JSON.stringify(authUser));
-        await AsyncStorage.setItem(SESSION_STARTED_KEY, String(Date.now()));
-        setUser(authUser);
-
-        if (data.session) {
-          console.log('Auth: Session available immediately after signup');
-        } else {
+        let sessionReady = !!data.session;
+        if (!sessionReady) {
           console.log('Auth: No session yet, attempting auto sign-in');
           try {
             const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
-            if (signInData?.user && !signInError) {
-              console.log('Auth: Auto sign-in after registration successful');
-            } else if (signInError) {
-              console.log('Auth: Auto sign-in error', signInError.message);
-            }
+            sessionReady = !!signInData?.session;
+            if (signInError) console.log('Auth: Auto sign-in error', signInError.message);
           } catch (signInErr) {
-            console.log('Auth: Auto sign-in failed (non-blocking)', signInErr);
+            console.log('Auth: Auto sign-in failed', signInErr);
           }
         }
 
-        console.log('Auth: Supabase register success', authUser.name);
-        return { success: true };
+        if (sessionReady) {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session?.user) {
+            const authUser = await loadProfileFromSupabase(
+              session.user.id,
+              session.user.email ?? email,
+              trimmedName,
+              defaultAvatar,
+            );
+            await AsyncStorage.setItem(AUTH_KEY, JSON.stringify(authUser));
+            await AsyncStorage.setItem(SESSION_STARTED_KEY, String(Date.now()));
+            setUser(authUser);
+            console.log('Auth: Supabase register success with session', authUser.name);
+            return { success: true };
+          }
+        }
+
+        console.log('Auth: Registered — email confirmation may be required');
+        return { success: true, pendingVerification: true };
       }
       return { success: false, error: 'Registration failed. Please try again.' };
     } catch (e) {
@@ -439,7 +433,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
       console.log('Auth: Supabase signOut error', e);
     }
     try {
-      await AsyncStorage.multiRemove(ALL_STORAGE_KEYS);
+      await AsyncStorage.multiRemove(AUTH_STORAGE_KEYS);
     } catch (e) {
       console.log('Auth: Storage clear error', e);
     }

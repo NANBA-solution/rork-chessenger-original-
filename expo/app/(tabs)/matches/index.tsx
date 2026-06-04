@@ -37,7 +37,6 @@ import { useAuth } from '@/providers/AuthProvider';
 import { useChess } from '@/providers/ChessProvider';
 import { Player } from '@/types';
 import { supabase } from '@/utils/supabaseClient';
-import { fetchProfileMatchStatsBatch } from '@/utils/matchStatsBatch';
 import { resolveAvatarUrl } from '@/utils/avatarUrl';
 import { getCountryFlag, getCountryName } from '@/utils/translations';
 import { ReportButton } from '@/components/ReportButton';
@@ -129,8 +128,8 @@ function useDiscoverProfiles(currentUserId: string | undefined) {
     setError(null);
     try {
       const { data: profileRows, error: profileErr } = await supabase
-        .from('profiles')
-        .select('id, name, avatar, location, country, skill_level, rating, chess_com_rating, play_styles, preferred_time_control, bio')
+        .from('profiles_with_match_stats')
+        .select('id, name, avatar, location, country, skill_level, rating, chess_com_rating, play_styles, preferred_time_control, bio, games_played, wins, losses, draws')
         .neq('id', currentUserId)
         .limit(30);
 
@@ -141,29 +140,24 @@ function useDiscoverProfiles(currentUserId: string | undefined) {
         return;
       }
 
-      const statsMap = await fetchProfileMatchStatsBatch(supabase, profileRows);
-
       const shuffled: DiscoverProfile[] = profileRows
-        .map((r: any) => {
-          const s = statsMap.get(r.id) ?? { games_played: 0, wins: 0, losses: 0, draws: 0 };
-          return {
-            id: r.id,
-            name: r.name ?? 'Unknown',
-            avatar: r.avatar ?? null,
-            location: r.location ?? null,
-            country: r.country ?? null,
-            skillLevel: r.skill_level ?? null,
-            rating: r.rating ?? null,
-            chessComRating: r.chess_com_rating ?? null,
-            playStyles: Array.isArray(r.play_styles) ? r.play_styles : [],
-            preferredTimeControl: r.preferred_time_control ?? null,
-            bio: r.bio ?? null,
-            games_played: s.games_played,
-            wins: s.wins,
-            losses: s.losses,
-            draws: s.draws,
-          };
-        })
+        .map((r: Record<string, unknown>) => ({
+            id: r.id as string,
+            name: (r.name as string) ?? 'Unknown',
+            avatar: (r.avatar as string) ?? null,
+            location: (r.location as string) ?? null,
+            country: (r.country as string) ?? null,
+            skillLevel: (r.skill_level as string) ?? null,
+            rating: (r.rating as number) ?? null,
+            chessComRating: (r.chess_com_rating as number) ?? null,
+            playStyles: Array.isArray(r.play_styles) ? (r.play_styles as string[]) : [],
+            preferredTimeControl: (r.preferred_time_control as string) ?? null,
+            bio: (r.bio as string) ?? null,
+            games_played: Number(r.games_played ?? 0),
+            wins: Number(r.wins ?? 0),
+            losses: Number(r.losses ?? 0),
+            draws: Number(r.draws ?? 0),
+          }))
         .sort(() => Math.random() - 0.5);
 
       setProfiles(shuffled);

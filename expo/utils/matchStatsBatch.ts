@@ -7,7 +7,7 @@ export interface MatchStats {
   draws: number;
 }
 
-function statsFromProfileRow(p: Record<string, unknown>): MatchStats {
+function statsFromRow(p: Record<string, unknown>): MatchStats {
   return {
     games_played: Number(p.games_played ?? 0),
     wins: Number(p.wins ?? 0),
@@ -16,8 +16,30 @@ function statsFromProfileRow(p: Record<string, unknown>): MatchStats {
   };
 }
 
+async function fetchStatsFromView(
+  client: SupabaseClient,
+  ids: string[],
+): Promise<Map<string, MatchStats>> {
+  const map = new Map<string, MatchStats>();
+  if (ids.length === 0) return map;
+
+  const { data, error } = await client
+    .from('profiles_with_match_stats')
+    .select('id, games_played, wins, losses, draws')
+    .in('id', ids);
+
+  if (error || !data?.length) return map;
+
+  for (const row of data as Record<string, unknown>[]) {
+    const id = row.id as string;
+    if (id) map.set(id, statsFromRow(row));
+  }
+  return map;
+}
+
 /**
- * マッチ統計を RPC で一括取得。未デプロイ時 (404) は profiles 列にフォールバック。
+ * マッチ統計を RPC で一括取得。
+ * 未デプロイ時は profiles_with_match_stats ビュー → 最後に profiles 列。
  */
 export async function fetchProfileMatchStatsBatch(
   client: SupabaseClient,
@@ -46,19 +68,33 @@ export async function fetchProfileMatchStatsBatch(
         draws: r.draws ?? 0,
       });
     }
+    for (const id of ids) {
+      if (!map.has(id)) {
+        const row = profileRows.find((p) => p.id === id);
+        if (row) map.set(id, statsFromRow(row));
+      }
+    }
     return map;
   }
 
   if (error && typeof __DEV__ !== 'undefined' && __DEV__) {
     console.warn(
-      'fetchProfileMatchStatsBatch: RPC unavailable, using profile columns',
+      'fetchProfileMatchStatsBatch: RPC unavailable, trying view fallback',
       error.code ?? '',
-      error.message ?? ''
+      error.message ?? '',
     );
   }
 
+  const viewMap = await fetchStatsFromView(client, ids);
+  if (viewMap.size > 0) {
+    for (const id of ids) {
+      map.set(id, viewMap.get(id) ?? statsFromRow(profileRows.find((p) => p.id === id) ?? { id }));
+    }
+    return map;
+  }
+
   for (const p of profileRows) {
-    map.set(p.id, statsFromProfileRow(p));
+    map.set(p.id, statsFromRow(p));
   }
   return map;
 }

@@ -172,6 +172,7 @@ export default function SettingsScreen() {
       >
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('account_management', language)}</Text>
+          {isLoggedIn ? (
           <View style={styles.sectionCard}>
             <Pressable onPress={() => router.push('/edit-profile' as any)} style={styles.row}>
               <View style={[styles.iconCircle, { backgroundColor: colors.goldMuted }]}>
@@ -211,6 +212,18 @@ export default function SettingsScreen() {
               <ChevronRight size={16} color={colors.textMuted} />
             </Pressable>
           </View>
+          ) : (
+          <View style={styles.sectionCard}>
+            <Text style={styles.loginPromptTitle}>{t('login_prompt', language)}</Text>
+            <Text style={styles.loginPromptDesc}>{t('login_prompt_desc', language)}</Text>
+            <Pressable
+              onPress={() => router.push('/login' as any)}
+              style={styles.loginPromptBtn}
+            >
+              <Text style={styles.loginPromptBtnText}>{t('login', language)}</Text>
+            </Pressable>
+          </View>
+          )}
         </View>
 
         <View style={styles.section}>
@@ -546,6 +559,34 @@ function createStyles(colors: ThemeColors) {
       fontSize: 16,
       fontWeight: '700' as const,
       color: colors.red,
+    },
+    loginPromptTitle: {
+      fontSize: 16,
+      fontWeight: '700' as const,
+      color: colors.textPrimary,
+      paddingHorizontal: 18,
+      paddingTop: 16,
+    },
+    loginPromptDesc: {
+      fontSize: 14,
+      lineHeight: 20,
+      color: colors.textSecondary,
+      paddingHorizontal: 18,
+      paddingTop: 8,
+      paddingBottom: 14,
+    },
+    loginPromptBtn: {
+      marginHorizontal: 18,
+      marginBottom: 16,
+      backgroundColor: colors.gold,
+      borderRadius: 14,
+      paddingVertical: 12,
+      alignItems: 'center',
+    },
+    loginPromptBtnText: {
+      fontSize: 15,
+      fontWeight: '700' as const,
+      color: colors.white,
     },
     bottomSpacer: {
       height: 48,
