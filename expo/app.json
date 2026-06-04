@@ -17,6 +17,7 @@
       "supportsTablet": false,
       "bundleIdentifier": "chessenger.app",
       "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
         "NSPhotoLibraryUsageDescription": "プロフィール写真やタイムライン投稿に使用します",
         "NSPhotoLibraryAddUsageDescription": "写真を保存するために使用します",
         "NSCameraUsageDescription": "プロフィール写真・タイムライン投稿の撮影、およびQRコードスキャンに使用します",
