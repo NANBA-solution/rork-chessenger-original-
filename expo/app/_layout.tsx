@@ -1,3 +1,4 @@
+import "@/rork-error-shim";
 import { installRorkWebErrorNormalize } from "@/utils/rorkWebErrorNormalize";
 installRorkWebErrorNormalize();
 
