@@ -62,5 +62,6 @@ GitHub → **Actions** → **iOS TestFlight Upload** → **Run workflow** → br
 | `git exit 128` / submodule `rork-chessenger` | 誤って追加したサブモジュールをリポジトリから削除（`.gitignore` 済み） |
 | Node.js 20 actions deprecated | `actions/checkout@v6` / `setup-node@v6`（Node 24 ランタイム）を使用 |
 | unable to cache dependencies | `expo` に `package-lock.json` が無いため npm キャッシュは無効（`package-manager-cache: false`） |
+| altool 90062 / CFBundleShortVersionString | `expo/app.json` の `version` を **App Store 承認済みより大きく**（例: 1.3.0 済みなら 1.4.0）して再ビルド |
 | prebuild / pod 失敗 | Actions ログの該当ステップを確認 |
 | ビルドが Connect に出ない | Processing 5〜30 分待つ |
