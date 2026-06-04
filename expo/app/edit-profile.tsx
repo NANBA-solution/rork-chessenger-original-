@@ -21,7 +21,6 @@ import { ThemeColors } from '@/constants/colors';
 import { useTheme } from '@/providers/ThemeProvider';
 import { useChess } from '@/providers/ChessProvider';
 import { useAuth } from '@/providers/AuthProvider';
-import { useAuth } from '@/providers/AuthProvider';
 import { SkillLevel, PlayStyle } from '@/types';
 import { t, COUNTRY_OPTIONS, getCountryFlag, getCountryName } from '@/utils/translations';
 import { supabaseNoAuth } from '@/utils/supabaseClient';
