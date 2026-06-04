@@ -10,16 +10,15 @@ import {
   NativeScrollEvent,
   Platform,
   Alert,
-  InteractionManager,
 } from 'react-native';
-import { Stack, useRouter, useRootNavigationState } from 'expo-router';
+import { Stack, Redirect } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Image } from 'expo-image';
 import * as Haptics from 'expo-haptics';
 import {
   ArrowRight,
   Search,
-  Map,
+  MapPin,
   Swords,
   MessageCircle,
   Languages,
@@ -42,12 +41,12 @@ interface SlideConfig {
 
 const SLIDES: SlideConfig[] = [
   { icon: Search, iconBg: '#EDE9FE', titleKey: 'onboarding_slide1_title', descKey: 'onboarding_slide1_desc' },
-  { icon: Map, iconBg: '#DCFCE7', titleKey: 'onboarding_slide2_title', descKey: 'onboarding_slide2_desc' },
+  { icon: MapPin, iconBg: '#DCFCE7', titleKey: 'onboarding_slide2_title', descKey: 'onboarding_slide2_desc' },
   { icon: Swords, iconBg: '#EDE9FE', titleKey: 'onboarding_slide3_title', descKey: 'onboarding_slide3_desc' },
   { icon: MessageCircle, iconBg: '#DBEAFE', titleKey: 'onboarding_slide4_title', descKey: 'onboarding_slide4_desc' },
 ];
 
-function formatNavError(e: unknown): string {
+function formatError(e: unknown): string {
   if (e instanceof Error && e.message) return e.message;
   if (typeof e === 'object' && e !== null && 'message' in e) {
     const msg = (e as { message: unknown }).message;
@@ -59,30 +58,12 @@ function formatNavError(e: unknown): string {
 export default function OnboardingScreen() {
   const { colors } = useTheme();
   const { language, toggleLanguage } = useChess();
-  const router = useRouter();
-  const rootState = useRootNavigationState();
   const scrollRef = useRef<ScrollView>(null);
   const [page, setPage] = useState(0);
+  const [exitToApp, setExitToApp] = useState(false);
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const isLast = page === SLIDES.length - 1;
-
-  const goToMain = useCallback(() => {
-    const attempt = (retriesLeft: number) => {
-      if (!rootState?.key) {
-        if (retriesLeft > 0) {
-          setTimeout(() => attempt(retriesLeft - 1), 50);
-        }
-        return;
-      }
-      try {
-        router.replace('/(tabs)');
-      } catch (e) {
-        Alert.alert(t('error', language), formatNavError(e));
-      }
-    };
-    attempt(20);
-  }, [rootState?.key, router, language]);
 
   const finish = useCallback(async () => {
     try {
@@ -90,13 +71,11 @@ export default function OnboardingScreen() {
         await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
       }
       await completeOnboarding();
-      InteractionManager.runAfterInteractions(() => {
-        goToMain();
-      });
+      setExitToApp(true);
     } catch (e) {
-      Alert.alert(t('error', language), formatNavError(e));
+      Alert.alert(t('error', language), formatError(e));
     }
-  }, [goToMain, language]);
+  }, [language]);
 
   const handleNext = useCallback(() => {
     if (isLast) {
@@ -122,6 +101,10 @@ export default function OnboardingScreen() {
     }
     toggleLanguage();
   }, [toggleLanguage]);
+
+  if (exitToApp) {
+    return <Redirect href="/(tabs)" />;
+  }
 
   return (
     <View style={styles.container}>

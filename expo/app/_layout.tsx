@@ -1,12 +1,10 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Stack, useRouter, useRootNavigationState, useSegments } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import React, { useEffect, useState, useCallback, useRef } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { LogBox, Platform, View, StatusBar } from "react-native";
 import * as Linking from "expo-linking";
 import { setupNotificationHandler } from "@/utils/notifications";
-import { isOnboardingComplete } from "@/utils/onboardingStorage";
-
 setupNotificationHandler();
 
 LogBox.ignoreLogs([
@@ -22,46 +20,10 @@ import { AuthProvider } from "@/providers/AuthProvider";
 import { ThemeProvider, useTheme } from "@/providers/ThemeProvider";
 import { AnimatedLogoSplash } from "@/components/AnimatedLogoSplash";
 
-// スプラッシュ画面を自動で隠さないように設定
-SplashScreen.preventAutoHideAsync();
+// スプラッシュ画面を自動で隠さないように設定（未処理 reject だと Rork で Error message: {} になる）
+void SplashScreen.preventAutoHideAsync().catch(() => {});
 
 const queryClient = new QueryClient();
-
-function formatNavError(e: unknown): string {
-  if (e instanceof Error && e.message) return e.message;
-  if (typeof e === "object" && e !== null && "message" in e) {
-    const msg = (e as { message: unknown }).message;
-    if (typeof msg === "string" && msg) return msg;
-  }
-  return String(e);
-}
-
-/** 初回起動時のみオンボーディングへ誘導（スプラッシュ完了後） */
-function OnboardingGate({ splashDone }: { splashDone: boolean }) {
-  const router = useRouter();
-  const rootState = useRootNavigationState();
-  const segments = useSegments();
-  const attempted = useRef(false);
-
-  useEffect(() => {
-    if (!splashDone || !rootState?.key || attempted.current) return;
-    if (segments[0] === "onboarding") return;
-
-    attempted.current = true;
-    void (async () => {
-      try {
-        const done = await isOnboardingComplete();
-        if (done) return;
-        router.replace("/onboarding");
-      } catch (e) {
-        attempted.current = false;
-        console.warn("OnboardingGate: redirect failed", formatNavError(e));
-      }
-    })();
-  }, [splashDone, rootState?.key, segments, router]);
-
-  return null;
-}
 
 function RootLayoutNav() {
   const { colors, isDark } = useTheme();
@@ -110,6 +72,7 @@ function RootLayoutNav() {
           animation: 'slide_from_right',
         }}
       >
+        <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen
           name="login"
@@ -134,17 +97,15 @@ function RootLayoutNav() {
 
 export default function RootLayout() {
   const [showSplash, setShowSplash] = useState(true);
-  const [splashDone, setSplashDone] = useState(false);
 
   const handleSplashComplete = useCallback(() => {
     setShowSplash(false);
-    setSplashDone(true);
   }, []);
 
   useEffect(() => {
     // ネイティブスプラッシュを早めに隠してカスタムアニメーションを表示
-    const t = setTimeout(async () => {
-      await SplashScreen.hideAsync();
+    const t = setTimeout(() => {
+      void SplashScreen.hideAsync().catch(() => {});
     }, 250);
     return () => clearTimeout(t);
   }, []);
@@ -157,7 +118,6 @@ export default function RootLayout() {
             <ChessProvider>
               <ThemeProvider>
                 <RootLayoutNav />
-                <OnboardingGate splashDone={splashDone} />
                 {showSplash && (
                   <AnimatedLogoSplash onComplete={handleSplashComplete} />
                 )}
