@@ -12,5 +12,10 @@ export async function isOnboardingComplete(): Promise<boolean> {
 }
 
 export async function completeOnboarding(): Promise<void> {
-  await AsyncStorage.setItem(ONBOARDING_COMPLETE_KEY, 'true');
+  try {
+    await AsyncStorage.setItem(ONBOARDING_COMPLETE_KEY, 'true');
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    throw new Error(msg || 'Failed to save onboarding state');
+  }
 }

@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Stack, useRouter } from "expo-router";
+import { Stack, useRouter, useRootNavigationState, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { LogBox, Platform, View, StatusBar } from "react-native";
@@ -27,21 +27,38 @@ SplashScreen.preventAutoHideAsync();
 
 const queryClient = new QueryClient();
 
+function formatNavError(e: unknown): string {
+  if (e instanceof Error && e.message) return e.message;
+  if (typeof e === "object" && e !== null && "message" in e) {
+    const msg = (e as { message: unknown }).message;
+    if (typeof msg === "string" && msg) return msg;
+  }
+  return String(e);
+}
+
 /** 初回起動時のみオンボーディングへ誘導（スプラッシュ完了後） */
 function OnboardingGate({ splashDone }: { splashDone: boolean }) {
   const router = useRouter();
-  const checked = useRef(false);
+  const rootState = useRootNavigationState();
+  const segments = useSegments();
+  const attempted = useRef(false);
 
   useEffect(() => {
-    if (!splashDone || checked.current) return;
-    checked.current = true;
-    (async () => {
-      const done = await isOnboardingComplete();
-      if (!done) {
-        router.replace("/onboarding" as any);
+    if (!splashDone || !rootState?.key || attempted.current) return;
+    if (segments[0] === "onboarding") return;
+
+    attempted.current = true;
+    void (async () => {
+      try {
+        const done = await isOnboardingComplete();
+        if (done) return;
+        router.replace("/onboarding");
+      } catch (e) {
+        attempted.current = false;
+        console.warn("OnboardingGate: redirect failed", formatNavError(e));
       }
     })();
-  }, [splashDone, router]);
+  }, [splashDone, rootState?.key, segments, router]);
 
   return null;
 }

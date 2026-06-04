@@ -9,8 +9,10 @@ import {
   NativeSyntheticEvent,
   NativeScrollEvent,
   Platform,
+  Alert,
+  InteractionManager,
 } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
+import { Stack, useRouter, useRootNavigationState } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Image } from 'expo-image';
 import * as Haptics from 'expo-haptics';
@@ -45,23 +47,56 @@ const SLIDES: SlideConfig[] = [
   { icon: MessageCircle, iconBg: '#DBEAFE', titleKey: 'onboarding_slide4_title', descKey: 'onboarding_slide4_desc' },
 ];
 
+function formatNavError(e: unknown): string {
+  if (e instanceof Error && e.message) return e.message;
+  if (typeof e === 'object' && e !== null && 'message' in e) {
+    const msg = (e as { message: unknown }).message;
+    if (typeof msg === 'string' && msg) return msg;
+  }
+  return String(e);
+}
+
 export default function OnboardingScreen() {
   const { colors } = useTheme();
   const { language, toggleLanguage } = useChess();
   const router = useRouter();
+  const rootState = useRootNavigationState();
   const scrollRef = useRef<ScrollView>(null);
   const [page, setPage] = useState(0);
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const isLast = page === SLIDES.length - 1;
 
+  const goToMain = useCallback(() => {
+    const attempt = (retriesLeft: number) => {
+      if (!rootState?.key) {
+        if (retriesLeft > 0) {
+          setTimeout(() => attempt(retriesLeft - 1), 50);
+        }
+        return;
+      }
+      try {
+        router.replace('/(tabs)');
+      } catch (e) {
+        Alert.alert(t('error', language), formatNavError(e));
+      }
+    };
+    attempt(20);
+  }, [rootState?.key, router, language]);
+
   const finish = useCallback(async () => {
-    if (Platform.OS !== 'web') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    try {
+      if (Platform.OS !== 'web') {
+        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+      }
+      await completeOnboarding();
+      InteractionManager.runAfterInteractions(() => {
+        goToMain();
+      });
+    } catch (e) {
+      Alert.alert(t('error', language), formatNavError(e));
     }
-    await completeOnboarding();
-    router.replace('/(tabs)' as any);
-  }, [router]);
+  }, [goToMain, language]);
 
   const handleNext = useCallback(() => {
     if (isLast) {
@@ -69,7 +104,7 @@ export default function OnboardingScreen() {
       return;
     }
     if (Platform.OS !== 'web') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     }
     const next = page + 1;
     scrollRef.current?.scrollTo({ x: next * SW, animated: true });
@@ -83,7 +118,7 @@ export default function OnboardingScreen() {
 
   const handleToggleLanguage = useCallback(() => {
     if (Platform.OS !== 'web') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     }
     toggleLanguage();
   }, [toggleLanguage]);
