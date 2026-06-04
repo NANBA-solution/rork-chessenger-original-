@@ -13,37 +13,49 @@ import {
 } from 'react-native';
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Image } from 'expo-image';
+import { Image, type ImageSource } from 'expo-image';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
-import {
-  ArrowRight,
-  Search,
-  MapPin,
-  Swords,
-  MessageCircle,
-  Languages,
-  type LucideIcon,
-} from 'lucide-react-native';
+import { ArrowRight, Languages } from 'lucide-react-native';
 import { ThemeColors } from '@/constants/colors';
 import { useTheme } from '@/providers/ThemeProvider';
 import { useChess } from '@/providers/ChessProvider';
 import { t } from '@/utils/translations';
 import { completeOnboarding } from '@/utils/onboardingStorage';
 
-const { width: SW } = Dimensions.get('window');
+const { width: SW, height: SH } = Dimensions.get('window');
+const IMAGE_HEIGHT = Math.min(SH * 0.46, 380);
+
+const MINT = '#6EE7B7';
+const MINT_DARK = '#34D399';
 
 interface SlideConfig {
-  icon: LucideIcon;
-  iconBg: string;
+  image: ImageSource;
   titleKey: string;
   descKey: string;
 }
 
 const SLIDES: SlideConfig[] = [
-  { icon: Search, iconBg: '#EDE9FE', titleKey: 'onboarding_slide1_title', descKey: 'onboarding_slide1_desc' },
-  { icon: MapPin, iconBg: '#DCFCE7', titleKey: 'onboarding_slide2_title', descKey: 'onboarding_slide2_desc' },
-  { icon: Swords, iconBg: '#EDE9FE', titleKey: 'onboarding_slide3_title', descKey: 'onboarding_slide3_desc' },
-  { icon: MessageCircle, iconBg: '#DBEAFE', titleKey: 'onboarding_slide4_title', descKey: 'onboarding_slide4_desc' },
+  {
+    image: require('@/assets/images/onboarding/slide-welcome.png'),
+    titleKey: 'onboarding_slide1_title',
+    descKey: 'onboarding_slide1_desc',
+  },
+  {
+    image: require('@/assets/images/onboarding/slide-community.png'),
+    titleKey: 'onboarding_slide2_title',
+    descKey: 'onboarding_slide2_desc',
+  },
+  {
+    image: require('@/assets/images/onboarding/slide-match.png'),
+    titleKey: 'onboarding_slide3_title',
+    descKey: 'onboarding_slide3_desc',
+  },
+  {
+    image: require('@/assets/images/onboarding/slide-connect.png'),
+    titleKey: 'onboarding_slide4_title',
+    descKey: 'onboarding_slide4_desc',
+  },
 ];
 
 function formatError(e: unknown): string {
@@ -59,11 +71,12 @@ export default function OnboardingScreen() {
   const { colors } = useTheme();
   const { language, toggleLanguage } = useChess();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { from } = useLocalSearchParams<{ from?: string }>();
   const fromSettings = from === 'settings';
   const scrollRef = useRef<ScrollView>(null);
   const [page, setPage] = useState(0);
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useMemo(() => createStyles(colors, insets.top), [colors, insets.top]);
 
   const isLast = page === SLIDES.length - 1;
 
@@ -113,31 +126,29 @@ export default function OnboardingScreen() {
       <Stack.Screen options={{ headerShown: false }} />
 
       <LinearGradient
-        colors={['#F0FDF4', '#EDE9FE', '#FAF5FF', '#F0FDF4']}
-        locations={[0, 0.3, 0.7, 1]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+        colors={['#ECFDF5', '#F5F3FF', '#FAFAFA']}
+        locations={[0, 0.55, 1]}
         style={StyleSheet.absoluteFill}
       />
 
       <View style={styles.topBar}>
-        <Pressable onPress={handleToggleLanguage} style={styles.langBtn}>
-          <Languages size={14} color="#6B7280" />
-          <Text style={styles.langBtnText}>{language === 'ja' ? 'EN' : 'JA'}</Text>
-        </Pressable>
-        <Pressable onPress={finish} hitSlop={12} style={styles.skipBtn}>
-          <Text style={styles.skipText}>{t('onboarding_skip', language)}</Text>
-        </Pressable>
-      </View>
-
-      <View style={styles.hero}>
-        <Image
-          source={require('@/assets/images/app-icon.png')}
-          style={styles.appIcon}
-          contentFit="cover"
-        />
-        <Text style={styles.brandTitle}>Chessenger</Text>
-        <Text style={styles.brandTagline}>{t('onboarding_tagline', language)}</Text>
+        <View style={styles.brandRow}>
+          <Image
+            source={require('@/assets/images/app-icon.png')}
+            style={styles.brandIcon}
+            contentFit="cover"
+          />
+          <Text style={styles.brandName}>Chessenger</Text>
+        </View>
+        <View style={styles.topActions}>
+          <Pressable onPress={handleToggleLanguage} style={styles.pillBtn}>
+            <Languages size={14} color={colors.textSecondary} />
+            <Text style={styles.pillBtnText}>{language === 'ja' ? 'EN' : 'JA'}</Text>
+          </Pressable>
+          <Pressable onPress={finish} hitSlop={12} style={styles.pillBtn}>
+            <Text style={styles.skipText}>{t('onboarding_skip', language)}</Text>
+          </Pressable>
+        </View>
       </View>
 
       <ScrollView
@@ -149,35 +160,59 @@ export default function OnboardingScreen() {
         style={styles.pager}
         contentContainerStyle={styles.pagerContent}
       >
-        {SLIDES.map((slide, i) => {
-          const Icon = slide.icon;
-          return (
-            <View key={i} style={styles.slide}>
-              <View style={[styles.iconCircle, { backgroundColor: slide.iconBg }]}>
-                <Icon size={36} color={colors.accent} strokeWidth={2} />
-              </View>
+        {SLIDES.map((slide, i) => (
+          <View key={i} style={styles.slide}>
+            <View style={styles.imageFrame}>
+              <LinearGradient
+                colors={['#0C0C0E', '#141416', '#0C0C0E']}
+                style={StyleSheet.absoluteFill}
+              />
+              <View style={styles.mintGlow} />
+              <Image
+                source={slide.image}
+                style={styles.slideImage}
+                contentFit="contain"
+                transition={200}
+              />
+              <LinearGradient
+                colors={['transparent', 'rgba(250,250,250,0.95)']}
+                style={styles.imageFade}
+              />
+            </View>
+
+            <View style={styles.copyCard}>
+              <Text style={styles.stepLabel}>
+                {String(i + 1).padStart(2, '0')} / {String(SLIDES.length).padStart(2, '0')}
+              </Text>
               <Text style={styles.slideTitle}>{t(slide.titleKey, language)}</Text>
               <Text style={styles.slideDesc}>{t(slide.descKey, language)}</Text>
             </View>
-          );
-        })}
+          </View>
+        ))}
       </ScrollView>
 
-      <View style={styles.dots}>
-        {SLIDES.map((_, i) => (
-          <View
-            key={i}
-            style={[styles.dot, i === page && styles.dotActive]}
-          />
-        ))}
-      </View>
-
       <View style={styles.footer}>
+        <View style={styles.dots}>
+          {SLIDES.map((_, i) => (
+            <Pressable
+              key={i}
+              onPress={() => {
+                scrollRef.current?.scrollTo({ x: i * SW, animated: true });
+                setPage(i);
+              }}
+              hitSlop={8}
+            >
+              <View style={[styles.dot, i === page && styles.dotActive]} />
+            </Pressable>
+          ))}
+        </View>
+
         <Pressable onPress={handleNext} style={styles.ctaWrap}>
           <LinearGradient
-            colors={['#22C55E', '#16A34A']}
+            colors={[MINT, MINT_DARK, '#22C55E']}
+            locations={[0, 0.45, 1]}
             start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
+            end={{ x: 1, y: 1 }}
             style={styles.cta}
           >
             <Text style={styles.ctaText}>
@@ -185,19 +220,25 @@ export default function OnboardingScreen() {
                 ? (fromSettings ? t('onboarding_confirm', language) : t('get_started', language))
                 : t('onboarding_next', language)}
             </Text>
-            <ArrowRight size={18} color="#fff" />
+            <View style={styles.ctaIcon}>
+              <ArrowRight size={18} color="#0F172A" strokeWidth={2.5} />
+            </View>
           </LinearGradient>
         </Pressable>
+
+        {page === 0 && (
+          <Text style={styles.tagline}>{t('onboarding_tagline', language)}</Text>
+        )}
       </View>
     </View>
   );
 }
 
-function createStyles(colors: ThemeColors) {
-  const shadow = Platform.select({
-    ios: { shadowColor: '#8B5CF6', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.12, shadowRadius: 24 },
-    android: { elevation: 6 },
-    web: { boxShadow: '0 8px 28px rgba(139,92,246,0.12)' } as object,
+function createStyles(colors: ThemeColors, topInset: number) {
+  const cardShadow = Platform.select({
+    ios: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 12 }, shadowOpacity: 0.08, shadowRadius: 24 },
+    android: { elevation: 4 },
+    web: { boxShadow: '0 12px 40px rgba(15,23,42,0.08)' } as object,
   });
 
   return StyleSheet.create({
@@ -206,134 +247,145 @@ function createStyles(colors: ThemeColors) {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      paddingTop: Platform.OS === 'ios' ? 56 : 40,
-      paddingHorizontal: 24,
+      paddingTop: Math.max(topInset, Platform.OS === 'ios' ? 12 : 16) + 8,
+      paddingHorizontal: 20,
+      paddingBottom: 8,
     },
-    langBtn: {
+    brandRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+    },
+    brandIcon: {
+      width: 36,
+      height: 36,
+      borderRadius: 10,
+    },
+    brandName: {
+      fontSize: 18,
+      fontWeight: '800',
+      color: colors.textPrimary,
+      letterSpacing: -0.4,
+    },
+    topActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    pillBtn: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 5,
-      paddingHorizontal: 14,
-      paddingVertical: 8,
-      borderRadius: 20,
-      backgroundColor: 'rgba(255,255,255,0.85)',
+      paddingHorizontal: 12,
+      paddingVertical: 7,
+      borderRadius: 999,
+      backgroundColor: 'rgba(255,255,255,0.92)',
       borderWidth: 1,
-      borderColor: 'rgba(139,92,246,0.12)',
-      ...Platform.select({
-        ios: { shadowColor: '#8B5CF6', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 6 },
-        android: { elevation: 2 },
-        web: { boxShadow: '0 2px 8px rgba(139,92,246,0.08)' } as object,
-      }),
+      borderColor: 'rgba(110,231,183,0.35)',
     },
-    langBtnText: {
+    pillBtnText: {
       fontSize: 12,
       fontWeight: '700',
-      color: '#6B7280',
-      letterSpacing: 0.5,
-    },
-    skipBtn: {
-      paddingHorizontal: 14,
-      paddingVertical: 8,
-      borderRadius: 20,
-      backgroundColor: 'rgba(255,255,255,0.85)',
-      borderWidth: 1,
-      borderColor: 'rgba(139,92,246,0.12)',
+      color: colors.textSecondary,
+      letterSpacing: 0.4,
     },
     skipText: {
       fontSize: 13,
       fontWeight: '600',
       color: colors.textSecondary,
     },
-    hero: {
-      alignItems: 'center',
-      paddingTop: 8,
-      paddingBottom: 12,
-      gap: 6,
+    pager: { flex: 1 },
+    pagerContent: { alignItems: 'flex-start' },
+    slide: {
+      width: SW,
+      flex: 1,
+      paddingHorizontal: 20,
     },
-    appIcon: {
-      width: 72,
+    imageFrame: {
+      height: IMAGE_HEIGHT,
+      borderRadius: 28,
+      overflow: 'hidden',
+      marginTop: 4,
+      borderWidth: 1,
+      borderColor: 'rgba(110,231,183,0.2)',
+      ...cardShadow,
+    },
+    mintGlow: {
+      position: 'absolute',
+      top: '18%',
+      left: '15%',
+      right: '15%',
+      height: '50%',
+      borderRadius: 999,
+      backgroundColor: MINT,
+      opacity: 0.12,
+    },
+    slideImage: {
+      width: '100%',
+      height: '100%',
+    },
+    imageFade: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      bottom: 0,
       height: 72,
-      borderRadius: 16,
-      ...Platform.select({
-        ios: {
-          shadowColor: '#22C55E',
-          shadowOffset: { width: 0, height: 6 },
-          shadowOpacity: 0.35,
-          shadowRadius: 14,
-        },
-        android: { elevation: 8 },
-      }),
     },
-    brandTitle: {
+    copyCard: {
+      flex: 1,
+      marginTop: 20,
+      paddingHorizontal: 4,
+      gap: 10,
+      justifyContent: 'flex-start',
+    },
+    stepLabel: {
+      fontSize: 11,
+      fontWeight: '700',
+      letterSpacing: 2,
+      color: MINT_DARK,
+      textTransform: 'uppercase',
+    },
+    slideTitle: {
       fontSize: 26,
       fontWeight: '800',
       color: colors.textPrimary,
-      letterSpacing: -0.5,
-    },
-    brandTagline: {
-      fontSize: 14,
-      fontWeight: '500',
-      color: colors.textMuted,
-    },
-    pager: { flexGrow: 0 },
-    pagerContent: { alignItems: 'center' },
-    slide: {
-      width: SW,
-      paddingHorizontal: 32,
-      alignItems: 'center',
-      justifyContent: 'center',
-      minHeight: 220,
-      gap: 16,
-    },
-    iconCircle: {
-      width: 88,
-      height: 88,
-      borderRadius: 44,
-      alignItems: 'center',
-      justifyContent: 'center',
-      ...(shadow ?? {}),
-    },
-    slideTitle: {
-      fontSize: 22,
-      fontWeight: '700',
-      color: colors.textPrimary,
-      textAlign: 'center',
-      letterSpacing: -0.3,
+      letterSpacing: -0.6,
+      lineHeight: 32,
     },
     slideDesc: {
       fontSize: 15,
-      lineHeight: 22,
+      lineHeight: 23,
       fontWeight: '500',
       color: colors.textSecondary,
-      textAlign: 'center',
+    },
+    footer: {
+      paddingHorizontal: 24,
+      paddingBottom: Platform.OS === 'ios' ? 36 : 24,
+      gap: 16,
     },
     dots: {
       flexDirection: 'row',
       justifyContent: 'center',
-      gap: 8,
-      paddingVertical: 20,
+      alignItems: 'center',
+      gap: 6,
     },
     dot: {
-      width: 8,
-      height: 8,
+      width: 7,
+      height: 7,
       borderRadius: 4,
-      backgroundColor: 'rgba(139,92,246,0.2)',
+      backgroundColor: 'rgba(15,23,42,0.12)',
     },
     dotActive: {
-      width: 24,
-      backgroundColor: colors.accent,
-    },
-    footer: {
-      paddingHorizontal: 24,
-      paddingBottom: Platform.OS === 'ios' ? 40 : 28,
+      width: 28,
+      backgroundColor: MINT_DARK,
     },
     ctaWrap: {
-      borderRadius: 28,
+      borderRadius: 20,
       overflow: 'hidden',
       ...Platform.select({
-        ios: { shadowColor: '#22C55E', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.35, shadowRadius: 18 },
-        android: { elevation: 8 },
-        web: { boxShadow: '0 8px 24px rgba(34,197,94,0.35)' } as object,
+        ios: { shadowColor: MINT_DARK, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.35, shadowRadius: 20 },
+        android: { elevation: 6 },
+        web: { boxShadow: '0 10px 28px rgba(52,211,153,0.35)' } as object,
       }),
     },
     cta: {
@@ -341,13 +393,29 @@ function createStyles(colors: ThemeColors) {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      gap: 10,
+      gap: 12,
+      paddingHorizontal: 24,
     },
     ctaText: {
-      color: '#fff',
+      color: '#0F172A',
       fontSize: 16,
-      fontWeight: '700',
-      letterSpacing: 0.3,
+      fontWeight: '800',
+      letterSpacing: 0.2,
+    },
+    ctaIcon: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: 'rgba(255,255,255,0.55)',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    tagline: {
+      textAlign: 'center',
+      fontSize: 13,
+      fontWeight: '500',
+      color: colors.textMuted,
+      marginTop: -4,
     },
   });
 }
