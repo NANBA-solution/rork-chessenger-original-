@@ -2,3 +2,6 @@ node_modules
 .env
 .expo
 .rork
+rork-chessenger/
+bun.lock
+expo-env.d.ts

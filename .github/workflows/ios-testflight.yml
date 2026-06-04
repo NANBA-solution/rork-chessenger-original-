@@ -27,7 +27,7 @@ jobs:
       EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
       EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
       SCHEME: chessenger
-      PROJECT_PATH: ios/chessenger.xcodeproj
+      WORKSPACE_PATH: ios/chessenger.xcworkspace
 
     steps:
       - name: Checkout
@@ -87,7 +87,7 @@ jobs:
       - name: CocoaPods install
         run: |
           cd ios
-          pod install --repo-update
+          pod install
 
       - name: Install App Store Connect API key
         working-directory: .
@@ -113,14 +113,17 @@ jobs:
 
       - name: Archive
         run: |
+          MARKETING_VERSION="$(node -p "require('./app.json').expo.version")"
           ARCHIVE_PATH="$RUNNER_TEMP/chessenger.xcarchive"
+          # CocoaPods 経由の Expo モジュールは .xcworkspace 必須（.xcodeproj だと modulemap not found → exit 65）
           xcodebuild archive \
-            -project "$PROJECT_PATH" \
+            -workspace "$WORKSPACE_PATH" \
             -scheme "$SCHEME" \
             -configuration Release \
             -archivePath "$ARCHIVE_PATH" \
             -destination "generic/platform=iOS" \
             DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM_CLEAN" \
+            MARKETING_VERSION="$MARKETING_VERSION" \
             CURRENT_PROJECT_VERSION="${{ github.run_number }}" \
             CODE_SIGN_STYLE=Automatic \
             -allowProvisioningUpdates \

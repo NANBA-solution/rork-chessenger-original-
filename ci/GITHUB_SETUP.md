@@ -58,5 +58,7 @@ GitHub → **Actions** → **iOS TestFlight Upload** → **Run workflow** → br
 |------|------|
 | Cloud signing permission error | API キーを **Admin** に |
 | AuthKey invalid | Secret の `.p8` を再登録 |
+| Archive **exit 65** / `modulemap not found` / `no such module Expo` | ワークフローは **`.xcworkspace`** で Archive（修正済み）。再 Run workflow |
+| `git exit 128` / submodule `rork-chessenger` | 誤って追加したサブモジュールをリポジトリから削除（`.gitignore` 済み） |
 | prebuild / pod 失敗 | Actions ログの該当ステップを確認 |
 | ビルドが Connect に出ない | Processing 5〜30 分待つ |
