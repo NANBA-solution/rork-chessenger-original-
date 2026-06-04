@@ -60,5 +60,6 @@ GitHub → **Actions** → **iOS TestFlight Upload** → **Run workflow** → br
 | AuthKey invalid | Secret の `.p8` を再登録 |
 | Archive **exit 65** / `modulemap not found` / `no such module Expo` | ワークフローは **`.xcworkspace`** で Archive（修正済み）。再 Run workflow |
 | `git exit 128` / submodule `rork-chessenger` | 誤って追加したサブモジュールをリポジトリから削除（`.gitignore` 済み） |
+| Node.js 20 actions deprecated | `actions/checkout@v6` / `setup-node@v6`（Node 24 ランタイム）を使用 |
 | prebuild / pod 失敗 | Actions ログの該当ステップを確認 |
 | ビルドが Connect に出ない | Processing 5〜30 分待つ |

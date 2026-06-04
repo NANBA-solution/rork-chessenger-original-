@@ -31,7 +31,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Select Xcode 26
         working-directory: .
@@ -74,9 +74,11 @@ jobs:
           echo "DEVELOPMENT_TEAM_CLEAN=$TEAM" >> "$GITHUB_ENV"
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: "20"
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: expo/package-lock.json
 
       - name: Install dependencies
         run: npm install --legacy-peer-deps
