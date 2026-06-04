@@ -19,7 +19,7 @@ export default function AppIndex() {
         if (cancelled || routed.current) return;
         routed.current = true;
         if (done) {
-          router.replace('/(tabs)/(home)');
+          router.replace('/(tabs)/(home)/search');
         } else {
           router.replace('/onboarding');
         }

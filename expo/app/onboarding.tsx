@@ -77,7 +77,7 @@ export default function OnboardingScreen() {
         return;
       }
       await completeOnboarding();
-      router.replace('/(tabs)/(home)');
+      router.replace('/(tabs)/(home)/search');
     } catch (e) {
       Alert.alert(t('error', language), formatError(e));
     }

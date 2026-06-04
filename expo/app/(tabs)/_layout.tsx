@@ -294,7 +294,7 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="(home)"
+        name="(home)/search"
         options={{ title: t('tab_search', language) }}
       />
       <Tabs.Screen
