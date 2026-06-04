@@ -173,10 +173,7 @@ export default function OnboardingScreen() {
                 style={styles.slideImage}
                 contentFit="contain"
                 transition={200}
-              />
-              <LinearGradient
-                colors={['transparent', colors.background]}
-                style={styles.imageFade}
+                backgroundColor="transparent"
               />
             </View>
 
@@ -324,13 +321,6 @@ function createStyles(colors: ThemeColors, topInset: number) {
     slideImage: {
       width: '100%',
       height: '100%',
-    },
-    imageFade: {
-      position: 'absolute',
-      left: 0,
-      right: 0,
-      bottom: 0,
-      height: 72,
     },
     copyCard: {
       flex: 1,
