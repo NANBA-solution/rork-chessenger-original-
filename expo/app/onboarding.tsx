@@ -11,7 +11,7 @@ import {
   Platform,
   Alert,
 } from 'react-native';
-import { Stack, Redirect } from 'expo-router';
+import { Stack, Redirect, useRouter, useLocalSearchParams } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Image } from 'expo-image';
 import * as Haptics from 'expo-haptics';
@@ -28,7 +28,10 @@ import { ThemeColors } from '@/constants/colors';
 import { useTheme } from '@/providers/ThemeProvider';
 import { useChess } from '@/providers/ChessProvider';
 import { t } from '@/utils/translations';
-import { completeOnboarding } from '@/utils/onboardingStorage';
+import {
+  completeOnboarding,
+  markOnboardingReviewedFromSettings,
+} from '@/utils/onboardingStorage';
 
 const { width: SW } = Dimensions.get('window');
 
@@ -58,6 +61,9 @@ function formatError(e: unknown): string {
 export default function OnboardingScreen() {
   const { colors } = useTheme();
   const { language, toggleLanguage } = useChess();
+  const router = useRouter();
+  const { from } = useLocalSearchParams<{ from?: string }>();
+  const fromSettings = from === 'settings';
   const scrollRef = useRef<ScrollView>(null);
   const [page, setPage] = useState(0);
   const [exitToApp, setExitToApp] = useState(false);
@@ -70,12 +76,17 @@ export default function OnboardingScreen() {
       if (Platform.OS !== 'web') {
         await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
       }
+      if (fromSettings) {
+        await markOnboardingReviewedFromSettings();
+        router.back();
+        return;
+      }
       await completeOnboarding();
       setExitToApp(true);
     } catch (e) {
       Alert.alert(t('error', language), formatError(e));
     }
-  }, [language]);
+  }, [language, fromSettings, router]);
 
   const handleNext = useCallback(() => {
     if (isLast) {
@@ -179,7 +190,9 @@ export default function OnboardingScreen() {
             style={styles.cta}
           >
             <Text style={styles.ctaText}>
-              {isLast ? t('get_started', language) : t('onboarding_next', language)}
+              {isLast
+                ? (fromSettings ? t('onboarding_confirm', language) : t('get_started', language))
+                : t('onboarding_next', language)}
             </Text>
             <ArrowRight size={18} color="#fff" />
           </LinearGradient>

@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useMemo } from 'react';
+import { useFocusEffect } from 'expo-router';
 import Constants from 'expo-constants';
 import {
   View,
@@ -36,6 +37,7 @@ import {
   LogOut,
   UserX,
   Flag,
+  BookOpen,
 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { ThemeColors } from '@/constants/colors';
@@ -48,6 +50,7 @@ import { t } from '@/utils/translations';
 import { LanguageSelector } from '@/components/LanguageSelector';
 import { BackNavButton } from '@/components/BackNavButton';
 import { ReportButton } from '@/components/ReportButton';
+import { isOnboardingReviewedFromSettings } from '@/utils/onboardingStorage';
 
 export default function SettingsScreen() {
   const { colors, isDark, toggleTheme } = useTheme();
@@ -64,6 +67,20 @@ export default function SettingsScreen() {
   const [profileVisible, setProfileVisible] = useState<boolean>(true);
   const [onlineStatus, setOnlineStatus] = useState<boolean>(true);
   const [distanceVisible, setDistanceVisible] = useState<boolean>(true);
+  const [showOnboardingGuide, setShowOnboardingGuide] = useState<boolean | null>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      void isOnboardingReviewedFromSettings().then((reviewed) => {
+        setShowOnboardingGuide(!reviewed);
+      });
+    }, []),
+  );
+
+  const handleOpenOnboardingGuide = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    router.push({ pathname: '/onboarding', params: { from: 'settings' } } as any);
+  }, [router]);
 
   const handleToggleTheme = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -348,6 +365,19 @@ export default function SettingsScreen() {
             <LanguageSelector variant="full" />
 
             <View style={styles.rowDivider} />
+
+            {showOnboardingGuide === true && (
+              <>
+                <Pressable onPress={handleOpenOnboardingGuide} style={styles.row}>
+                  <View style={[styles.iconCircle, { backgroundColor: colors.greenMuted }]}>
+                    <BookOpen size={16} color={colors.green} />
+                  </View>
+                  <Text style={styles.rowText}>{t('settings_onboarding_guide', language)}</Text>
+                  <ChevronRight size={16} color={colors.textMuted} />
+                </Pressable>
+                <View style={styles.rowDivider} />
+              </>
+            )}
 
             <Pressable onPress={handleToggleLocation} style={styles.row}>
               <View style={[styles.iconCircle, { backgroundColor: locationEnabled ? colors.blueMuted : colors.surfaceHighlight }]}>
