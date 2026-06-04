@@ -23,6 +23,7 @@ import { ChessProvider } from "@/providers/ChessProvider";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { ThemeProvider, useTheme } from "@/providers/ThemeProvider";
 import { AnimatedLogoSplash } from "@/components/AnimatedLogoSplash";
+import { WebHydrationGate } from "@/components/WebHydrationGate";
 
 // スプラッシュ画面を自動で隠さないように設定（未処理 reject だと Rork で Error message: {} になる）
 void SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -115,10 +116,12 @@ export default function RootLayout() {
           <LocationProvider>
             <ChessProvider>
               <ThemeProvider>
-                <RootLayoutNav />
-                {showSplash && splashMountReady ? (
-                  <AnimatedLogoSplash onComplete={handleSplashComplete} />
-                ) : null}
+                <WebHydrationGate>
+                  <RootLayoutNav />
+                  {showSplash && splashMountReady ? (
+                    <AnimatedLogoSplash onComplete={handleSplashComplete} />
+                  ) : null}
+                </WebHydrationGate>
               </ThemeProvider>
             </ChessProvider>
           </LocationProvider>

@@ -78,11 +78,12 @@ export async function fetchProfileMatchStatsBatch(
   }
 
   if (error && typeof __DEV__ !== 'undefined' && __DEV__) {
-    console.warn(
-      'fetchProfileMatchStatsBatch: RPC unavailable, trying view fallback',
-      error.code ?? '',
-      error.message ?? '',
-    );
+    const code = error.code ?? '';
+    const msg = error.message ?? '';
+    // 404 は未デプロイ時の想定内 — console.error にすると Rork が Error message: {} を出す
+    if (code !== 'PGRST202' && !String(msg).includes('404')) {
+      console.warn('fetchProfileMatchStatsBatch: RPC unavailable, trying view fallback', code, msg);
+    }
   }
 
   const viewMap = await fetchStatsFromView(client, ids);
