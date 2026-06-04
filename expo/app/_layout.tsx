@@ -1,10 +1,11 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack, useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { LogBox, Platform, View, StatusBar } from "react-native";
 import * as Linking from "expo-linking";
 import { setupNotificationHandler } from "@/utils/notifications";
+import { isOnboardingComplete } from "@/utils/onboardingStorage";
 
 setupNotificationHandler();
 
@@ -25,6 +26,25 @@ import { AnimatedLogoSplash } from "@/components/AnimatedLogoSplash";
 SplashScreen.preventAutoHideAsync();
 
 const queryClient = new QueryClient();
+
+/** 初回起動時のみオンボーディングへ誘導（スプラッシュ完了後） */
+function OnboardingGate({ splashDone }: { splashDone: boolean }) {
+  const router = useRouter();
+  const checked = useRef(false);
+
+  useEffect(() => {
+    if (!splashDone || checked.current) return;
+    checked.current = true;
+    (async () => {
+      const done = await isOnboardingComplete();
+      if (!done) {
+        router.replace("/onboarding" as any);
+      }
+    })();
+  }, [splashDone, router]);
+
+  return null;
+}
 
 function RootLayoutNav() {
   const { colors, isDark } = useTheme();
@@ -82,6 +102,14 @@ function RootLayoutNav() {
             animation: 'fade',
           }}
         />
+        <Stack.Screen
+          name="onboarding"
+          options={{
+            headerShown: false,
+            gestureEnabled: false,
+            animation: 'fade',
+          }}
+        />
       </Stack>
     </View>
   );
@@ -89,9 +117,11 @@ function RootLayoutNav() {
 
 export default function RootLayout() {
   const [showSplash, setShowSplash] = useState(true);
+  const [splashDone, setSplashDone] = useState(false);
 
   const handleSplashComplete = useCallback(() => {
     setShowSplash(false);
+    setSplashDone(true);
   }, []);
 
   useEffect(() => {
@@ -110,6 +140,7 @@ export default function RootLayout() {
             <ChessProvider>
               <ThemeProvider>
                 <RootLayoutNav />
+                <OnboardingGate splashDone={splashDone} />
                 {showSplash && (
                   <AnimatedLogoSplash onComplete={handleSplashComplete} />
                 )}
