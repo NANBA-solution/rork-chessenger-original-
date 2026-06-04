@@ -1,3 +1,6 @@
+import { installRorkWebErrorNormalize } from "@/utils/rorkWebErrorNormalize";
+installRorkWebErrorNormalize();
+
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack, useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -96,12 +99,9 @@ function RootLayoutNav() {
 }
 
 export default function RootLayout() {
-  const [showSplash, setShowSplash] = useState(true);
-  const [splashMountReady, setSplashMountReady] = useState(Platform.OS !== 'web');
-
-  useEffect(() => {
-    setSplashMountReady(true);
-  }, []);
+  // Web（Rork プレビュー）ではカスタムスプラッシュを出さない（hydration / 親フレームへの空エラー報告を避ける）
+  const [showSplash, setShowSplash] = useState(Platform.OS !== 'web');
+  const splashMountReady = Platform.OS !== 'web';
 
   const handleSplashComplete = useCallback(() => {
     setShowSplash(false);
@@ -123,9 +123,9 @@ export default function RootLayout() {
             <ChessProvider>
               <ThemeProvider>
                 <RootLayoutNav />
-                {showSplash && splashMountReady && (
+                {showSplash && splashMountReady ? (
                   <AnimatedLogoSplash onComplete={handleSplashComplete} />
-                )}
+                ) : null}
               </ThemeProvider>
             </ChessProvider>
           </LocationProvider>

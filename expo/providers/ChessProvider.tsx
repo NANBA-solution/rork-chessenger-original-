@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
-import { Alert, AppState } from 'react-native';
+import { Alert, AppState, Platform } from 'react-native';
 import createContextHook from '@nkzw/create-context-hook';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Match, MatchStatus, MatchRating, Player, UserProfile, TimelinePost, TimelineComment, TimelineEvent, MatchResultReport, AppNotification, SkillLevel, PlayStyle } from '@/types';
@@ -324,7 +324,17 @@ export const [ChessProvider, useChess] = createContextHook(() => {
   useEffect(() => {
     const loadLang = async () => {
       try {
-        const stored = await AsyncStorage.getItem(LANGUAGE_KEY);
+        let stored: string | null = null;
+        if (Platform.OS === 'web' && typeof localStorage !== 'undefined') {
+          try {
+            stored = localStorage.getItem(LANGUAGE_KEY);
+          } catch {
+            // ignore
+          }
+        }
+        if (!stored) {
+          stored = await AsyncStorage.getItem(LANGUAGE_KEY);
+        }
         // アプリ内設定を常に優先: iOS システムロケールは参照せず、12言語コードとの整合性を厳格にチェック
         if (stored && supportedCodes.has(stored)) {
           setLanguage(stored);
