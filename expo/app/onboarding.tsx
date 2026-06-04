@@ -68,7 +68,7 @@ function formatError(e: unknown): string {
 }
 
 export default function OnboardingScreen() {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const { language, toggleLanguage } = useChess();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -126,7 +126,11 @@ export default function OnboardingScreen() {
       <Stack.Screen options={{ headerShown: false }} />
 
       <LinearGradient
-        colors={['#ECFDF5', '#F5F3FF', '#FAFAFA']}
+        colors={
+          isDark
+            ? [colors.background, colors.surface, colors.background]
+            : [colors.background, colors.surfaceLight, colors.background]
+        }
         locations={[0, 0.55, 1]}
         style={StyleSheet.absoluteFill}
       />
@@ -163,10 +167,6 @@ export default function OnboardingScreen() {
         {SLIDES.map((slide, i) => (
           <View key={i} style={styles.slide}>
             <View style={styles.imageFrame}>
-              <LinearGradient
-                colors={['#0C0C0E', '#141416', '#0C0C0E']}
-                style={StyleSheet.absoluteFill}
-              />
               <View style={styles.mintGlow} />
               <Image
                 source={slide.image}
@@ -175,7 +175,7 @@ export default function OnboardingScreen() {
                 transition={200}
               />
               <LinearGradient
-                colors={['transparent', 'rgba(250,250,250,0.95)']}
+                colors={['transparent', colors.background]}
                 style={styles.imageFade}
               />
             </View>
@@ -242,7 +242,7 @@ function createStyles(colors: ThemeColors, topInset: number) {
   });
 
   return StyleSheet.create({
-    container: { flex: 1 },
+    container: { flex: 1, backgroundColor: colors.background },
     topBar: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -279,9 +279,9 @@ function createStyles(colors: ThemeColors, topInset: number) {
       paddingHorizontal: 12,
       paddingVertical: 7,
       borderRadius: 999,
-      backgroundColor: 'rgba(255,255,255,0.92)',
+      backgroundColor: colors.card,
       borderWidth: 1,
-      borderColor: 'rgba(110,231,183,0.35)',
+      borderColor: colors.cardBorder,
     },
     pillBtnText: {
       fontSize: 12,
@@ -306,8 +306,9 @@ function createStyles(colors: ThemeColors, topInset: number) {
       borderRadius: 28,
       overflow: 'hidden',
       marginTop: 4,
+      backgroundColor: colors.background,
       borderWidth: 1,
-      borderColor: 'rgba(110,231,183,0.2)',
+      borderColor: colors.cardBorder,
       ...cardShadow,
     },
     mintGlow: {
@@ -317,8 +318,8 @@ function createStyles(colors: ThemeColors, topInset: number) {
       right: '15%',
       height: '50%',
       borderRadius: 999,
-      backgroundColor: MINT,
-      opacity: 0.12,
+      backgroundColor: colors.green,
+      opacity: 0.08,
     },
     slideImage: {
       width: '100%',
