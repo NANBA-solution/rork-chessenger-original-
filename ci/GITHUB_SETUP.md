@@ -2,7 +2,14 @@
 
 デスクトップの **iOS-Git-リリース手順.md** と同じフロー。Expo は CI 内で `expo prebuild` するため、`ios/` をコミットする必要はありません。
 
-## Secrets（Repository → Settings → Secrets → Actions）
+## Actions が 8秒で落ちるとき
+
+ログで **Validate secrets** が赤 → 下の Secret が **1つでも欠けている**状態です。  
+`git exit code 128` は本体の原因ではないことが多いです。
+
+**登録場所:** リポジトリ → **Settings** → **Secrets and variables** → **Actions** → **New repository secret**
+
+## Secrets（6つすべて必須）
 
 | Secret | 内容 |
 |--------|------|

@@ -53,12 +53,22 @@ jobs:
           ISSUER="$(trim "$ISSUER")"
           KEY_ID="$(trim "$KEY_ID")"
           TEAM="$(trim "$TEAM")"
-          test -n "$ISSUER" || (echo "APPSTORE_ISSUER_ID が未設定です" && exit 1)
-          test -n "$KEY_ID" || (echo "APPSTORE_API_KEY_ID が未設定です" && exit 1)
-          test -n "$API_KEY" || (echo "APPSTORE_API_PRIVATE_KEY が未設定です" && exit 1)
-          test -n "$TEAM" || (echo "DEVELOPMENT_TEAM が未設定です" && exit 1)
-          test -n "$SUPA_URL" || (echo "EXPO_PUBLIC_SUPABASE_URL が未設定です" && exit 1)
-          test -n "$SUPA_KEY" || (echo "EXPO_PUBLIC_SUPABASE_ANON_KEY が未設定です" && exit 1)
+          API_KEY="$(trim "$API_KEY")"
+          SUPA_URL="$(trim "$SUPA_URL")"
+          SUPA_KEY="$(trim "$SUPA_KEY")"
+          MISSING=""
+          test -n "$ISSUER" || MISSING="$MISSING APPSTORE_ISSUER_ID"
+          test -n "$KEY_ID" || MISSING="$MISSING APPSTORE_API_KEY_ID"
+          test -n "$API_KEY" || MISSING="$MISSING APPSTORE_API_PRIVATE_KEY"
+          test -n "$TEAM" || MISSING="$MISSING DEVELOPMENT_TEAM"
+          test -n "$SUPA_URL" || MISSING="$MISSING EXPO_PUBLIC_SUPABASE_URL"
+          test -n "$SUPA_KEY" || MISSING="$MISSING EXPO_PUBLIC_SUPABASE_ANON_KEY"
+          if [ -n "$MISSING" ]; then
+            echo "::error::GitHub Secrets が未設定です:$MISSING"
+            echo "Settings → Secrets and variables → Actions で登録後、Run workflow を再実行してください。"
+            echo "Supabase の値はローカルの expo/.env と同じ本番用を使います。"
+            exit 1
+          fi
           echo "APPSTORE_ISSUER_ID_CLEAN=$ISSUER" >> "$GITHUB_ENV"
           echo "APPSTORE_API_KEY_ID_CLEAN=$KEY_ID" >> "$GITHUB_ENV"
           echo "DEVELOPMENT_TEAM_CLEAN=$TEAM" >> "$GITHUB_ENV"
