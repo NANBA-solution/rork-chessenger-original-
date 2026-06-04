@@ -61,5 +61,6 @@ GitHub → **Actions** → **iOS TestFlight Upload** → **Run workflow** → br
 | Archive **exit 65** / `modulemap not found` / `no such module Expo` | ワークフローは **`.xcworkspace`** で Archive（修正済み）。再 Run workflow |
 | `git exit 128` / submodule `rork-chessenger` | 誤って追加したサブモジュールをリポジトリから削除（`.gitignore` 済み） |
 | Node.js 20 actions deprecated | `actions/checkout@v6` / `setup-node@v6`（Node 24 ランタイム）を使用 |
+| unable to cache dependencies | `expo` に `package-lock.json` が無いため npm キャッシュは無効（`package-manager-cache: false`） |
 | prebuild / pod 失敗 | Actions ログの該当ステップを確認 |
 | ビルドが Connect に出ない | Processing 5〜30 分待つ |
