@@ -11,7 +11,7 @@ import {
   Platform,
   Alert,
 } from 'react-native';
-import { Stack, Redirect, useRouter, useLocalSearchParams } from 'expo-router';
+import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Image } from 'expo-image';
 import * as Haptics from 'expo-haptics';
@@ -63,7 +63,6 @@ export default function OnboardingScreen() {
   const fromSettings = from === 'settings';
   const scrollRef = useRef<ScrollView>(null);
   const [page, setPage] = useState(0);
-  const [exitToApp, setExitToApp] = useState(false);
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const isLast = page === SLIDES.length - 1;
@@ -78,7 +77,7 @@ export default function OnboardingScreen() {
         return;
       }
       await completeOnboarding();
-      setExitToApp(true);
+      router.replace('/(tabs)/(home)');
     } catch (e) {
       Alert.alert(t('error', language), formatError(e));
     }
@@ -108,10 +107,6 @@ export default function OnboardingScreen() {
     }
     toggleLanguage();
   }, [toggleLanguage]);
-
-  if (exitToApp) {
-    return <Redirect href="/(tabs)/(home)" />;
-  }
 
   return (
     <View style={styles.container}>

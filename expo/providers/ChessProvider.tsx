@@ -6,6 +6,7 @@ import { Match, MatchStatus, MatchRating, Player, UserProfile, TimelinePost, Tim
 
 import { useLocation, calculateDistance, roundCoordinatesForPrivacy } from '@/providers/LocationProvider';
 import { Language, isRTL, SUPPORTED_LANGUAGES, t } from '@/utils/translations';
+import { getInitialAppLanguage } from '@/utils/initialLanguage';
 import { supabase, supabaseNoAuth, clearStaleSession } from '@/utils/supabaseClient';
 import { fetchProfileMatchStatsBatch } from '@/utils/matchStatsBatch';
 import { resolveAvatarUrl } from '@/utils/avatarUrl';
@@ -234,7 +235,7 @@ export const [ChessProvider, useChess] = createContextHook(() => {
     playStyles: [],
   };
   const [profile, setProfile] = useState<UserProfile>(defaultProfile);
-  const [language, setLanguage] = useState<Language>('en');
+  const [language, setLanguage] = useState<Language>(getInitialAppLanguage);
   const [timelinePosts, setTimelinePosts] = useState<TimelinePost[]>([]);
   const [blockedUsers, setBlockedUsers] = useState<string[]>([]);
   const [resultReports, setResultReports] = useState<MatchResultReport[]>([]);

@@ -20,6 +20,8 @@ export function AnimatedLogoSplash({ onComplete }: { onComplete?: () => void }) 
   const shimmer     = useRef(new Animated.Value(0)).current;
   const screenOpacity = useRef(new Animated.Value(1)).current;
 
+  const isWeb = Platform.OS === 'web';
+
   useEffect(() => {
     // 1) アイコン登場（spring）
     Animated.parallel([
@@ -41,13 +43,15 @@ export function AnimatedLogoSplash({ onComplete }: { onComplete?: () => void }) 
         ])
       ).start();
 
-      // 4) タイトルシマーループ（useNativeDriver 非対応の color は JS 側で）
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(shimmer, { toValue: 1, duration: 1200, useNativeDriver: false }),
-          Animated.timing(shimmer, { toValue: 0, duration: 1200, useNativeDriver: false }),
-        ])
-      ).start();
+      // 4) タイトル色シマー（Web は Animated.Text の color 補間が hydration #418 の原因になりやすい）
+      if (!isWeb) {
+        Animated.loop(
+          Animated.sequence([
+            Animated.timing(shimmer, { toValue: 1, duration: 1200, useNativeDriver: false }),
+            Animated.timing(shimmer, { toValue: 0, duration: 1200, useNativeDriver: false }),
+          ])
+        ).start();
+      }
     });
 
     // 5) 一定時間後にフェードアウトして完了
@@ -62,10 +66,18 @@ export function AnimatedLogoSplash({ onComplete }: { onComplete?: () => void }) 
     return () => clearTimeout(t);
   }, [onComplete]);
 
-  const titleColor = shimmer.interpolate({
-    inputRange:  [0, 0.5, 1],
-    outputRange: ['#18181B', '#22C55E', '#18181B'],
-  });
+  const titleColor = isWeb
+    ? '#18181B'
+    : shimmer.interpolate({
+        inputRange: [0, 0.5, 1],
+        outputRange: ['#18181B', '#22C55E', '#18181B'],
+      });
+
+  const titleNode = isWeb ? (
+    <Text style={[styles.title, { color: '#18181B' }]}>Chessenger</Text>
+  ) : (
+    <Animated.Text style={[styles.title, { color: titleColor }]}>Chessenger</Animated.Text>
+  );
 
   return (
     <Animated.View style={[styles.container, { opacity: screenOpacity }]} pointerEvents="none">
@@ -88,9 +100,7 @@ export function AnimatedLogoSplash({ onComplete }: { onComplete?: () => void }) 
 
       {/* Chessenger テキスト */}
       <Animated.View style={{ opacity: textOpacity, transform: [{ translateY: textY }] }}>
-        <Animated.Text style={[styles.title, { color: titleColor }]}>
-          Chessenger
-        </Animated.Text>
+        {titleNode}
         <View style={styles.subtitleRow}>
           <Animated.View style={[styles.dot, { transform: [{ scale: dotScale }] }]} />
           <Text style={styles.subtitle}>Find your match</Text>

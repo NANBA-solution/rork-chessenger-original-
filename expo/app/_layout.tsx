@@ -97,6 +97,11 @@ function RootLayoutNav() {
 
 export default function RootLayout() {
   const [showSplash, setShowSplash] = useState(true);
+  const [splashMountReady, setSplashMountReady] = useState(Platform.OS !== 'web');
+
+  useEffect(() => {
+    setSplashMountReady(true);
+  }, []);
 
   const handleSplashComplete = useCallback(() => {
     setShowSplash(false);
@@ -118,7 +123,7 @@ export default function RootLayout() {
             <ChessProvider>
               <ThemeProvider>
                 <RootLayoutNav />
-                {showSplash && (
+                {showSplash && splashMountReady && (
                   <AnimatedLogoSplash onComplete={handleSplashComplete} />
                 )}
               </ThemeProvider>

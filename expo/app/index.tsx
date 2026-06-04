@@ -1,42 +1,39 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { View, Platform } from 'react-native';
-import { Redirect } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { isOnboardingComplete } from '@/utils/onboardingStorage';
 
-type BootTarget = 'loading' | 'onboarding' | 'tabs';
-
 /**
- * 初回起動の振り分け。Web では hydration 前に Redirect しない（React #418 対策）。
+ * 初回起動の振り分け。Redirect ではなく replace で hydration 不一致を避ける。
  */
 export default function AppIndex() {
-  const [clientReady, setClientReady] = useState(Platform.OS !== 'web');
-  const [target, setTarget] = useState<BootTarget>('loading');
+  const router = useRouter();
+  const routed = useRef(false);
 
   useEffect(() => {
-    setClientReady(true);
-  }, []);
-
-  useEffect(() => {
-    if (!clientReady) return;
+    if (routed.current) return;
     let cancelled = false;
     void (async () => {
       try {
         const done = await isOnboardingComplete();
-        if (!cancelled) setTarget(done ? 'tabs' : 'onboarding');
+        if (cancelled || routed.current) return;
+        routed.current = true;
+        if (done) {
+          router.replace('/(tabs)/(home)');
+        } else {
+          router.replace('/onboarding');
+        }
       } catch {
-        if (!cancelled) setTarget('onboarding');
+        if (!cancelled && !routed.current) {
+          routed.current = true;
+          router.replace('/onboarding');
+        }
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [clientReady]);
+  }, [router]);
 
-  if (!clientReady || target === 'loading') {
-    return <View style={{ flex: 1 }} />;
-  }
-  if (target === 'onboarding') {
-    return <Redirect href="/onboarding" />;
-  }
-  return <Redirect href="/(tabs)/(home)" />;
+  return <View style={{ flex: 1, backgroundColor: Platform.OS === 'web' ? '#F7F8FC' : undefined }} />;
 }
