@@ -9,9 +9,6 @@ import React, { useEffect, useState, useCallback } from "react";
 import { LogBox, Platform, View, StatusBar } from "react-native";
 import * as Linking from "expo-linking";
 import { extractPlayerIdFromUrl } from "@/utils/deepLinks";
-import { setupNotificationHandler } from "@/utils/notifications";
-setupNotificationHandler();
-
 LogBox.ignoreLogs([
   "[SafeImage] onError",
   "Image data is nil",
@@ -103,6 +100,8 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
+    void import('@/utils/notifications').then((m) => m.setupNotificationHandler());
+
     // ネイティブスプラッシュを早めに隠してカスタムアニメーションを表示
     const t = setTimeout(() => {
       void SplashScreen.hideAsync().catch(() => {});

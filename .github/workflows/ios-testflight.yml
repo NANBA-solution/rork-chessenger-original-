@@ -73,6 +73,17 @@ jobs:
           echo "APPSTORE_API_KEY_ID_CLEAN=$KEY_ID" >> "$GITHUB_ENV"
           echo "DEVELOPMENT_TEAM_CLEAN=$TEAM" >> "$GITHUB_ENV"
 
+      # xcodebuild の Metro バンドルは .env を読む。未設定だと supabaseClient が起動直後に throw → 審査で crash on launch
+      - name: Write production .env
+        run: |
+          umask 077
+          printf '%s\n' \
+            "EXPO_PUBLIC_SUPABASE_URL=${EXPO_PUBLIC_SUPABASE_URL}" \
+            "EXPO_PUBLIC_SUPABASE_ANON_KEY=${EXPO_PUBLIC_SUPABASE_ANON_KEY}" \
+            > .env
+          test -s .env
+          echo "Wrote expo/.env ($(wc -l < .env | tr -d ' ') keys, values not logged)"
+
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
@@ -132,6 +143,24 @@ jobs:
             -authenticationKeyID "$APPSTORE_API_KEY_ID_CLEAN" \
             -authenticationKeyIssuerID "$APPSTORE_ISSUER_ID_CLEAN"
           echo "ARCHIVE_PATH=$ARCHIVE_PATH" >> "$GITHUB_ENV"
+
+      - name: Verify Supabase env in JS bundle
+        run: |
+          BUNDLE="$(find "$ARCHIVE_PATH/Products" -name '*.jsbundle' 2>/dev/null | head -1)"
+          if [ -z "$BUNDLE" ]; then
+            echo "::warning::main.jsbundle が見つかりません（検証スキップ）"
+            exit 0
+          fi
+          HOST="$(printf '%s' "$EXPO_PUBLIC_SUPABASE_URL" | sed -E 's#^https?://([^/]+).*#\1#')"
+          if [ -z "$HOST" ]; then
+            echo "::error::EXPO_PUBLIC_SUPABASE_URL が空です"
+            exit 1
+          fi
+          if ! grep -qF "$HOST" "$BUNDLE"; then
+            echo "::error::Supabase URL ($HOST) が JS バンドルに埋め込まれていません。起動時クラッシュの原因になります。"
+            exit 1
+          fi
+          echo "OK: Supabase host found in $(basename "$BUNDLE")"
 
       - name: Export IPA
         run: |
