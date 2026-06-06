@@ -1,4 +1,4 @@
-import { Tabs } from 'expo-router';
+import { Tabs, useRouter } from 'expo-router';
 import { Search, Swords, User, Newspaper, MessageCircle } from 'lucide-react-native';
 import React, { useRef, useEffect, useCallback } from 'react';
 import {
@@ -14,6 +14,8 @@ import { BlurView } from 'expo-blur';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useTheme } from '@/providers/ThemeProvider';
 import { useChess } from '@/providers/ChessProvider';
+import { useAuth } from '@/providers/AuthProvider';
+import { isOnboardingComplete } from '@/utils/onboardingStorage';
 import { ThemeColors } from '@/constants/colors';
 import { t } from '@/utils/translations';
 

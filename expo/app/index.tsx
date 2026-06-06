@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import { View, ActivityIndicator, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { isOnboardingComplete } from '@/utils/onboardingStorage';
@@ -11,7 +11,7 @@ export default function AppIndex() {
   const router = useRouter();
   const auth = useAuth();
   const isLoading = auth?.isLoading ?? true;
-  const routed = useRef(false);
+  const isLoggedIn = auth?.isLoggedIn ?? false;
 
   useEffect(() => {
     if (isLoading) return;
@@ -21,10 +21,12 @@ export default function AppIndex() {
       try {
         const done = await isOnboardingComplete();
         if (cancelled) return;
-        if (done) {
-          router.replace('/(tabs)/(home)/search');
-        } else {
+        if (!done) {
           router.replace('/onboarding');
+        } else if (!isLoggedIn) {
+          router.replace({ pathname: '/login', params: { mode: 'signup' } } as any);
+        } else {
+          router.replace('/(tabs)/(home)/search');
         }
       } catch {
         if (!cancelled) {
@@ -36,7 +38,7 @@ export default function AppIndex() {
     return () => {
       cancelled = true;
     };
-  }, [isLoading, router]);
+  }, [isLoading, isLoggedIn, router]);
 
   return (
     <View
