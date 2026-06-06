@@ -162,12 +162,13 @@ export default function ProfileScreen() {
 
   const handleShareQR = useCallback(async () => {
     try {
+      const displayName = profile?.name ?? user?.name ?? 'Chessenger';
       await Share.share({
         message: language === 'ja'
-          ? `ChessengerでCHESSENGERを探してください！\n${profileDeepLink}`
-          : `Find me on Chessenger!\n${profileDeepLink}`,
+          ? `Chessengerで${displayName}さんを探してください！\n${profileDeepLink}`
+          : `Find ${displayName} on Chessenger!\n${profileDeepLink}`,
         url: profileDeepLink,
-        title: 'Chessenger プロフィール',
+        title: language === 'ja' ? `${displayName} — Chessenger` : `${displayName} on Chessenger`,
       });
     } catch {
       // ignore cancel

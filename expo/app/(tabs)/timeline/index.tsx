@@ -1142,7 +1142,7 @@ export default function TimelineScreen() {
           style={[styles.filterTab, filter === 'my' && styles.filterTabActive]}
         >
           <Text style={[styles.filterTabText, filter === 'my' && styles.filterTabTextActive]}>
-            {language === 'ja' ? 'My' : 'My'}
+            {t('filter_my_posts', language)}
           </Text>
         </Pressable>
       </View>

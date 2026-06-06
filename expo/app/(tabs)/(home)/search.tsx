@@ -340,7 +340,7 @@ export default function HomeScreen() {
   }, [language, isActuallyLoggedIn]);
 
   const NEARBY_FILTERS: { key: NearbyFilter; label: string }[] = [
-    { key: 'all', label: language === 'ja' ? '全て' : 'All' },
+    { key: 'all', label: t('all', language) },
     { key: '0.5', label: '0-500m' },
     { key: '1', label: '0-1km' },
     { key: '1.5', label: '0-1.5km' },
@@ -359,7 +359,7 @@ export default function HomeScreen() {
       <View style={[styles.root, { justifyContent: 'center', alignItems: 'center', padding: 24 }]}>
         <Text style={{ color: colors.textMuted, textAlign: 'center', marginBottom: 16 }}>{fetchError}</Text>
         <Pressable onPress={() => { setLoading(true); fetchPlayers().finally(() => setLoading(false)); }} style={{ paddingVertical: 12, paddingHorizontal: 24, backgroundColor: colors.accent, borderRadius: 8 }}>
-          <Text style={{ color: '#fff', fontWeight: '600' }}>{language === 'ja' ? '再試行' : 'Retry'}</Text>
+          <Text style={{ color: '#fff', fontWeight: '600' }}>{t('retry', language)}</Text>
         </Pressable>
       </View>
     );
@@ -397,7 +397,7 @@ export default function HomeScreen() {
               <View style={[styles.errorBanner, { backgroundColor: colors.red + '20', borderColor: colors.red }]}>
                 <Text style={[styles.errorText, { color: colors.red }]} numberOfLines={2}>{fetchError}</Text>
                 <Pressable onPress={() => fetchPlayers()} style={[styles.retryBtn, { backgroundColor: colors.accent }]}>
-                  <Text style={styles.retryBtnText}>{language === 'ja' ? '再試行' : 'Retry'}</Text>
+                  <Text style={styles.retryBtnText}>{t('retry', language)}</Text>
                 </Pressable>
               </View>
             ) : null}

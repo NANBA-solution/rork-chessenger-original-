@@ -15,6 +15,8 @@ import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useTheme } from '@/providers/ThemeProvider';
 import { useChess } from '@/providers/ChessProvider';
 import { useAuth } from '@/providers/AuthProvider';
+import { isOnboardingComplete } from '@/utils/onboardingStorage';
+import { SIGNUP_LOGIN_HREF } from '@/utils/authRouting';
 import { ThemeColors } from '@/constants/colors';
 import { t } from '@/utils/translations';
 
@@ -294,9 +296,17 @@ export default function TabLayout() {
   useEffect(() => {
     if (isLoading) return;
 
-    if (!isLoggedIn) {
-      router.replace('/onboarding');
-    }
+    let cancelled = false;
+    void (async () => {
+      if (isLoggedIn) return;
+      const done = await isOnboardingComplete();
+      if (cancelled) return;
+      router.replace(done ? (SIGNUP_LOGIN_HREF as any) : '/onboarding');
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [isLoading, isLoggedIn, router]);
 
   return (

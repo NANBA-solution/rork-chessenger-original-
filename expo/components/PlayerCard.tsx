@@ -127,7 +127,7 @@ function PlayerCardComponent({ player, onPress, language = 'ja' }: PlayerCardPro
           </View>
           <View style={styles.footerItem}>
             <Swords size={13} color={colors.textMuted} />
-            <Text style={styles.footerText}>{player.gamesPlayed} {t('tab_matches', language)}</Text>
+            <Text style={styles.footerText}>{player.gamesPlayed}{t('games_count', language)}</Text>
           </View>
         </View>
       </Pressable>
@@ -135,15 +135,17 @@ function PlayerCardComponent({ player, onPress, language = 'ja' }: PlayerCardPro
   );
 }
 
+const PLAY_STYLE_KEYS: Record<PlayStyle, string> = {
+  casual: 'play_style_casual',
+  beginner_welcome: 'play_style_beginner_welcome',
+  competitive: 'play_style_competitive',
+  spectator_welcome: 'play_style_spectator_welcome',
+  tournament: 'play_style_tournament',
+};
+
 function getPlayStyleLabel(ps: PlayStyle, lang: string): string {
-  const labels: Record<PlayStyle, Record<string, string>> = {
-    casual: { ja: '\u{1F3B2} \u3086\u308B\u304F', en: '\u{1F3B2} Casual' },
-    beginner_welcome: { ja: '\u{1F331} \u521D\u5FC3\u8005\u6B53\u8FCE', en: '\u{1F331} Beginners' },
-    competitive: { ja: '\u2694\uFE0F \u30AC\u30C1', en: '\u2694\uFE0F Competitive' },
-    spectator_welcome: { ja: '\u{1F440} \u89B3\u6226OK', en: '\u{1F440} Spectators' },
-    tournament: { ja: '\u{1F3C6} \u5927\u4F1A', en: '\u{1F3C6} Tournament' },
-  };
-  return labels[ps]?.[lang] ?? labels[ps]?.['en'] ?? ps;
+  const key = PLAY_STYLE_KEYS[ps];
+  return key ? t(key, lang) : ps;
 }
 
 export const PlayerCard = React.memo(PlayerCardComponent);

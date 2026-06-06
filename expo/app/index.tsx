@@ -1,10 +1,12 @@
 import React, { useEffect } from 'react';
 import { View, ActivityIndicator, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
+import { isOnboardingComplete } from '@/utils/onboardingStorage';
+import { SIGNUP_LOGIN_HREF } from '@/utils/authRouting';
 import { useAuth } from '@/providers/AuthProvider';
 
 /**
- * 起動振り分け: 未登録 → オンボード（→ 登録） / 登録済み → ホーム
+ * 起動振り分け: 未オンボード → オンボード / 未登録 → 登録 / 登録済み → ホーム
  */
 export default function AppIndex() {
   const router = useRouter();
@@ -15,11 +17,20 @@ export default function AppIndex() {
   useEffect(() => {
     if (isLoading) return;
 
-    if (!isLoggedIn) {
-      router.replace('/onboarding');
-      return;
-    }
-    router.replace('/(tabs)/(home)/search');
+    let cancelled = false;
+    void (async () => {
+      if (isLoggedIn) {
+        router.replace('/(tabs)/(home)/search');
+        return;
+      }
+      const done = await isOnboardingComplete();
+      if (cancelled) return;
+      router.replace(done ? (SIGNUP_LOGIN_HREF as any) : '/onboarding');
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [isLoading, isLoggedIn, router]);
 
   return (

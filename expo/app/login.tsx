@@ -285,6 +285,8 @@ export default function LoginScreen() {
         if (success) {
           playLoginSuccessSound().catch(() => {});
           router.replace('/(tabs)' as any);
+        } else {
+          Alert.alert(t('login_error', language), t('login_error_desc', language));
         }
       } else {
         const result = await register(name, email, password, {
@@ -293,15 +295,18 @@ export default function LoginScreen() {
         if (result.success) {
           if ('pendingVerification' in result && result.pendingVerification) {
             Alert.alert(
-              language === 'ja' ? '確認メールを送信しました' : 'Check your email',
-              language === 'ja'
-                ? 'メール内のリンクを開いてからログインしてください。'
-                : 'Open the link in your email, then sign in.',
+              t('email_verification_sent_title', language),
+              t('email_verification_sent_desc', language),
             );
           } else {
             playLoginSuccessSound().catch(() => {});
             router.replace('/(tabs)' as any);
           }
+        } else {
+          Alert.alert(
+            t('register_error', language),
+            result.error ?? t('register_error_desc', language),
+          );
         }
       }
     } finally {
