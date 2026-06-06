@@ -36,12 +36,12 @@ export function ReportButton({ context = '', children, compact = true }: ReportB
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
 
-  const defaultSubject = language === 'ja' ? '【CHESSENGER 通報】' : '【CHESSENGER Report】';
+  const defaultSubject = t('report_subject_prefix', language);
 
   const openModal = useCallback(() => {
     Haptics.selectionAsync();
     setSubject(defaultSubject);
-    setBody(context ? `${language === 'ja' ? '通報対象・状況:\n' : 'Report target/situation:\n'}${context}\n\n` : '');
+    setBody(context ? `${t('report_body_prefix', language)}${context}\n\n` : '');
     setVisible(true);
   }, [context, language, defaultSubject]);
 

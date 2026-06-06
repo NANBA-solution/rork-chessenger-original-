@@ -275,7 +275,7 @@ export default function ChatScreen() {
           pendingTempIds.current.delete(tempId);
           setMessages((prev) => prev.filter((m) => m.id !== tempId));
           console.log('Chat: send error ' + error.message);
-          Alert.alert(t('error', language), `送信に失敗しました: ${error.message}`);
+          Alert.alert(t('error', language), t('send_failed_detail', language, { detail: error.message }));
         }
         return false;
       } catch (e) {
@@ -283,7 +283,7 @@ export default function ChatScreen() {
         setMessages((prev) => prev.filter((m) => m.id !== tempId));
         const msg = e instanceof Error ? e.message : String(e);
         console.log('Chat: send failed ' + String(e));
-        Alert.alert(t('error', language), `送信に失敗しました: ${msg}`);
+        Alert.alert(t('error', language), t('send_failed_detail', language, { detail: msg }));
         return false;
       }
     },
@@ -305,8 +305,8 @@ export default function ChatScreen() {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== 'granted') {
         Alert.alert(
-          'アクセス許可が必要です',
-          'フォトライブラリへのアクセスを許可してください。',
+          t('photo_permission_title', language),
+          t('photo_permission_desc', language),
         );
         return;
       }
@@ -330,12 +330,12 @@ export default function ChatScreen() {
         const { data: { user } } = await supabase.auth.getUser();
         const authUserId = user?.id;
         if (!authUserId) {
-          Alert.alert(t('error', language), 'ログイン情報を取得できなかったため、画像を送信できませんでした。');
+          Alert.alert(t('error', language), t('auth_required_for_image', language));
           return;
         }
         setIsUploadingImage(true);
         try {
-          const uploadResult = await uploadMessageImage(localUri, authUserId, actualRoomId, base64);
+          const uploadResult = await uploadMessageImage(localUri, authUserId, actualRoomId, base64, language);
           if ('url' in uploadResult) {
             await sendContent(encodeImageContent(uploadResult.url));
           } else {
@@ -386,7 +386,7 @@ export default function ChatScreen() {
                 contentFit="cover"
               />
             ) : isImg && imgUri ? (
-              <Text style={[styles.messageText, isMe ? styles.messageTextMe : styles.messageTextOther]}>📷 画像</Text>
+              <Text style={[styles.messageText, isMe ? styles.messageTextMe : styles.messageTextOther]}>{t('image_attachment', language)}</Text>
             ) : (
               <Text
                 style={[
@@ -456,7 +456,7 @@ export default function ChatScreen() {
               />
               <View>
                 <Text style={styles.headerName}>{chatPlayer.name}</Text>
-                <Text style={styles.headerStatus}>{'オンライン'}</Text>
+                <Text style={styles.headerStatus}>{t('online', language)}</Text>
               </View>
             </Pressable>
           ),
@@ -480,7 +480,7 @@ export default function ChatScreen() {
           }
           ListEmptyComponent={
             <View style={styles.center}>
-              <Text style={styles.emptyText}>{'メッセージを送ってみましょう'}</Text>
+              <Text style={styles.emptyText}>{t('empty_chat_hint', language)}</Text>
             </View>
           }
         />

@@ -107,6 +107,7 @@ function mapProfile(profile: SupabaseProfile, userLat?: number, userLon?: number
 }
 
 function AnimatedHeader({ colors }: { colors: ThemeColors }) {
+  const { language } = useChess();
   const iconPulse = useRef(new Animated.Value(1)).current;
   const shimmer = useRef(new Animated.Value(0)).current;
   const titleSlide = useRef(new Animated.Value(-8)).current;
@@ -155,11 +156,11 @@ function AnimatedHeader({ colors }: { colors: ThemeColors }) {
       {/* タイトル */}
       <Animated.View style={{ opacity: titleOpacity, transform: [{ translateX: titleSlide }] }}>
         <Animated.Text style={[headerAnim.title, { color: titleColor }]}>
-          Chessenger
+          {t('app_name', language)}
         </Animated.Text>
         <View style={headerAnim.subtitleRow}>
           <View style={headerAnim.dot} />
-          <Text style={[headerAnim.subtitle, { color: colors.textMuted }]}>Find your match</Text>
+          <Text style={[headerAnim.subtitle, { color: colors.textMuted }]}>{t('login_subtitle', language)}</Text>
         </View>
       </Animated.View>
     </View>

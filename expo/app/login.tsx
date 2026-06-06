@@ -81,6 +81,7 @@ function FloatingPiece({ x, delay, dur, piece, size }: Particle) {
 
 // ------- アニメーションヒーロー -------
 function AnimatedHero() {
+  const { language } = useChess();
   const iconScale = useRef(new Animated.Value(0.3)).current;
   const iconOpacity = useRef(new Animated.Value(0)).current;
   const iconPulse = useRef(new Animated.Value(1)).current;
@@ -182,14 +183,14 @@ function AnimatedHero() {
       {/* タイトル */}
       <Animated.View style={{ opacity: titleOpacity, transform: [{ translateY: titleY }] }}>
         <Animated.Text style={[hero.title, { color: titleColor }]}>
-          Chessenger
+          {t('app_name', language)}
         </Animated.Text>
       </Animated.View>
 
       {/* タグライン */}
       <Animated.View style={[hero.taglineRow, { opacity: taglineOpacity }]}>
         <View style={hero.dot} />
-        <Text style={hero.tagline}>Find your match · 対局相手を探そう</Text>
+        <Text style={hero.tagline}>{t('login_subtitle', language)}</Text>
         <View style={hero.dot} />
       </Animated.View>
     </View>
@@ -339,7 +340,7 @@ export default function LoginScreen() {
           <View style={styles.topBar}>
             <Pressable onPress={toggleLanguage} style={styles.langBtn}>
               <Languages size={14} color="#6B7280" />
-              <Text style={styles.langBtnText}>{language === 'ja' ? 'EN' : 'JA'}</Text>
+              <Text style={styles.langBtnText}>{language === 'ja' ? t('lang_switch_to_en', language) : t('lang_switch_to_ja', language)}</Text>
             </Pressable>
           </View>
 

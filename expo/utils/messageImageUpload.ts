@@ -2,6 +2,7 @@ import { Platform } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { supabase } from '@/utils/supabaseClient';
+import { Language, t } from '@/utils/translations';
 
 const LOG_TAG = '[MessageImageUpload]';
 const MESSAGE_IMAGES_BUCKET = 'message-images';
@@ -47,11 +48,12 @@ function getPublicUrl(filePath: string): string {
 async function uploadViaFileSystem(
   fileUri: string,
   filePath: string,
-  contentType: string
+  contentType: string,
+  lang: Language,
 ): Promise<MessageImageUploadResult> {
   const { data: { session } } = await supabase.auth.getSession();
   const token = session?.access_token;
-  if (!token) return { error: '認証セッションが取得できませんでした。再ログインしてください。' };
+  if (!token) return { error: t('upload_session_error', lang) };
 
   const supabaseUrl = (process.env.EXPO_PUBLIC_SUPABASE_URL ?? '').trim();
   const anonKey = (process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '').trim();
@@ -78,10 +80,15 @@ async function uploadViaFileSystem(
       console.log(LOG_TAG, '[FS] upload success');
       return { url: publicUrl + '?t=' + Date.now() };
     }
-    return { error: '公開URLの取得に失敗しました' };
+    return { error: t('upload_public_url_failed', lang) };
   }
 
-  return { error: `アップロードに失敗しました (HTTP ${result.status}): ${result.body?.slice(0, 100) ?? ''}` };
+  return {
+    error: t('upload_failed_http', lang, {
+      status: result.status,
+      body: result.body?.slice(0, 100) ?? '',
+    }),
+  };
 }
 
 // ─── フォールバック: XHR アップロード（FileSystem 失敗時のみ） ────────────────
@@ -103,11 +110,12 @@ async function uploadViaXHRFallback(
   localUri: string,
   filePath: string,
   contentType: string,
-  base64FromPicker?: string
+  lang: Language,
+  base64FromPicker?: string,
 ): Promise<MessageImageUploadResult> {
   const { data: { session } } = await supabase.auth.getSession();
   const token = session?.access_token;
-  if (!token) return { error: '認証セッションが取得できませんでした。再ログインしてください。' };
+  if (!token) return { error: t('upload_session_error', lang) };
 
   const supabaseUrl = (process.env.EXPO_PUBLIC_SUPABASE_URL ?? '').trim();
   const anonKey = (process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '').trim();
@@ -134,7 +142,7 @@ async function uploadViaXHRFallback(
   }
 
   if (!blob || blob.size === 0) {
-    return { error: '画像データの取得に失敗しました。別の画像をお試しください。' };
+    return { error: t('upload_image_data_failed', lang) };
   }
 
   console.log(LOG_TAG, '[XHR fallback] uploading blob size=', blob.size);
@@ -159,15 +167,15 @@ async function uploadViaXHRFallback(
       console.log(LOG_TAG, '[XHR fallback] upload success');
       return { url: publicUrl + '?t=' + Date.now() };
     }
-    return { error: '公開URLの取得に失敗しました' };
+    return { error: t('upload_public_url_failed', lang) };
   }
 
-  return { error: `アップロードに失敗しました (XHR fallback HTTP ${status})` };
+  return { error: t('upload_failed_xhr', lang, { status }) };
 }
 
 // ─── Web: Supabase JS クライアント（FormData は Web で正常動作） ─────────────
 
-async function uploadViaSupabaseClientWeb(blob: Blob, filePath: string, contentType: string): Promise<MessageImageUploadResult> {
+async function uploadViaSupabaseClientWeb(blob: Blob, filePath: string, contentType: string, lang: Language): Promise<MessageImageUploadResult> {
   console.log(LOG_TAG, '[Web] uploading blob size=', blob.size, 'path=', filePath);
 
   const { error } = await supabase.storage
@@ -176,11 +184,11 @@ async function uploadViaSupabaseClientWeb(blob: Blob, filePath: string, contentT
 
   if (error) {
     console.warn(LOG_TAG, '[Web] upload error:', error.message);
-    return { error: `アップロードに失敗しました: ${error.message}` };
+    return { error: t('upload_failed_msg', lang, { message: error.message }) };
   }
 
   const publicUrl = getPublicUrl(filePath);
-  if (!publicUrl) return { error: '公開URLの取得に失敗しました' };
+  if (!publicUrl) return { error: t('upload_public_url_failed', lang) };
 
   console.log(LOG_TAG, '[Web] upload success');
   return { url: publicUrl + '?t=' + Date.now() };
@@ -201,7 +209,8 @@ export async function uploadMessageImage(
   localUri: string,
   userId: string,
   roomId: string,
-  base64FromPicker?: string
+  base64FromPicker?: string,
+  lang: Language = 'ja',
 ): Promise<MessageImageUploadResult> {
   const fileExt = localUri.toLowerCase().includes('.png') ? 'png' : 'jpg';
   const filePath = `${userId}/${roomId}/${Date.now()}.${fileExt}`;
@@ -213,24 +222,24 @@ export async function uploadMessageImage(
     if (Platform.OS === 'web') {
       const res = await fetch(localUri).catch(() => null);
       const blob = res?.ok ? await res.blob().catch(() => null) : null;
-      if (!blob || blob.size === 0) return { error: '画像データが取得できませんでした。' };
-      return uploadViaSupabaseClientWeb(blob, filePath, contentType);
+      if (!blob || blob.size === 0) return { error: t('upload_image_data_unavailable', lang) };
+      return uploadViaSupabaseClientWeb(blob, filePath, contentType, lang);
     }
 
     // iOS / Android ─────────────────────────────────────────────────────────
     const fileUri = await normalizeToCachePath(localUri);
 
     // 第1: FileSystem.uploadAsync（ネイティブ・確実）
-    const fsResult = await uploadViaFileSystem(fileUri, filePath, contentType);
+    const fsResult = await uploadViaFileSystem(fileUri, filePath, contentType, lang);
     if ('url' in fsResult) return fsResult;
 
     // 第2: XHR fallback（FileSystem 失敗時のみ）
     console.warn(LOG_TAG, '[Chat] FileSystem failed, trying XHR fallback. error=', fsResult.error);
-    return uploadViaXHRFallback(fileUri, filePath, contentType, base64FromPicker);
+    return uploadViaXHRFallback(fileUri, filePath, contentType, lang, base64FromPicker);
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     console.warn(LOG_TAG, '[Chat] upload exception:', msg);
-    return { error: `アップロードに失敗しました: ${msg}` };
+    return { error: t('upload_failed_msg', lang, { message: msg }) };
   }
 }
 
@@ -255,7 +264,8 @@ export async function uploadMessageImage(
 export async function uploadTimelineImage(
   localUri: string,
   userId: string,
-  base64FromPicker?: string
+  base64FromPicker?: string,
+  lang: Language = 'ja',
 ): Promise<MessageImageUploadResult> {
   const fileExt = localUri.toLowerCase().includes('.png') ? 'png' : 'jpg';
   const filePath = `${userId}/timeline/${Date.now()}.${fileExt}`;
@@ -269,25 +279,25 @@ export async function uploadTimelineImage(
       const blob = res?.ok ? await res.blob().catch(() => null) : null;
       if (!blob || blob.size === 0) {
         console.warn(LOG_TAG, '[Timeline] web fetch failed');
-        return { error: '画像データの取得に失敗しました。別の画像をお試しください。' };
+        return { error: t('upload_image_data_failed', lang) };
       }
-      return uploadViaSupabaseClientWeb(blob, filePath, contentType);
+      return uploadViaSupabaseClientWeb(blob, filePath, contentType, lang);
     }
 
     // iOS / Android ─────────────────────────────────────────────────────────
     const fileUri = await normalizeToCachePath(localUri);
 
     // 第1: FileSystem.uploadAsync（ネイティブ・確実）
-    const fsResult = await uploadViaFileSystem(fileUri, filePath, contentType);
+    const fsResult = await uploadViaFileSystem(fileUri, filePath, contentType, lang);
     if ('url' in fsResult) return fsResult;
 
     // 第2: XHR fallback（FileSystem 失敗時のみ）
     console.warn(LOG_TAG, '[Timeline] FileSystem failed, trying XHR fallback. error=', fsResult.error);
-    return uploadViaXHRFallback(fileUri, filePath, contentType, base64FromPicker);
+    return uploadViaXHRFallback(fileUri, filePath, contentType, lang, base64FromPicker);
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     console.warn(LOG_TAG, '[Timeline] upload exception:', msg);
-    return { error: `アップロードに失敗しました: ${msg}` };
+    return { error: t('upload_failed_msg', lang, { message: msg }) };
   }
 }
 

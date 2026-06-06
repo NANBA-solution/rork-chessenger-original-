@@ -125,8 +125,8 @@ export default function ProfileScreen() {
       const result = await requestCameraPermission();
       if (!result.granted) {
         Alert.alert(
-          language === 'ja' ? 'カメラ許可が必要です' : 'Camera Permission Required',
-          language === 'ja' ? '設定からカメラを許可してください' : 'Please allow camera access in Settings'
+          t('camera_permission_title', language),
+          t('camera_permission_desc', language),
         );
         return;
       }
@@ -151,11 +151,9 @@ export default function ProfileScreen() {
     } else {
       setScanMode(false);
       Alert.alert(
-        language === 'ja' ? '対応していないQRコードです' : 'Unsupported QR Code',
-        language === 'ja'
-          ? `このQRコードはChessengerのプロフィールではありません\n${data}`
-          : `This QR code is not a Chessenger profile.\n${data}`,
-        [{ text: 'OK', onPress: () => { scannedRef.current = false; setScanMode(false); } }]
+        t('unsupported_qr_title', language),
+        t('unsupported_qr_desc', language, { data }),
+        [{ text: t('ok', language), onPress: () => { scannedRef.current = false; setScanMode(false); } }]
       );
     }
   }, [closeQR, router, language]);
@@ -164,11 +162,9 @@ export default function ProfileScreen() {
     try {
       const displayName = profile?.name ?? user?.name ?? 'Chessenger';
       await Share.share({
-        message: language === 'ja'
-          ? `Chessengerで${displayName}さんを探してください！\n${profileDeepLink}`
-          : `Find ${displayName} on Chessenger!\n${profileDeepLink}`,
+        message: t('share_profile_message', language, { name: displayName, link: profileDeepLink }),
         url: profileDeepLink,
-        title: language === 'ja' ? `${displayName} — Chessenger` : `${displayName} on Chessenger`,
+        title: t('share_profile_title', language, { name: displayName }),
       });
     } catch {
       // ignore cancel
@@ -360,7 +356,7 @@ export default function ProfileScreen() {
             {/* ヘッダー */}
             <View style={styles.qrHeader}>
               <Text style={styles.qrTitle}>
-                {language === 'ja' ? 'プロフィールQR' : 'Profile QR'}
+                {t('profile_qr_title', language)}
               </Text>
               <Pressable onPress={closeQR} style={styles.qrCloseBtn} hitSlop={12}>
                 <X size={20} color={colors.textMuted} />
@@ -384,12 +380,12 @@ export default function ProfileScreen() {
                   <View style={[styles.scannerCorner, styles.scannerCornerBR]} />
                 </View>
                 <Text style={styles.scannerHint}>
-                  {language === 'ja' ? '相手のQRコードに合わせてください' : 'Align with the QR code'}
+                  {t('qr_align_hint', language)}
                 </Text>
                 <Pressable onPress={() => setScanMode(false)} style={styles.scannerCancelBtn}>
                   <X size={20} color="#fff" />
                   <Text style={styles.scannerCancelText}>
-                    {language === 'ja' ? 'キャンセル' : 'Cancel'}
+                    {t('cancel', language)}
                   </Text>
                 </Pressable>
               </View>
@@ -422,7 +418,7 @@ export default function ProfileScreen() {
                 <Pressable onPress={openScanner} style={[styles.qrShareBtn, { backgroundColor: colors.green, marginBottom: 10 }]}>
                   <QrCode size={18} color="#fff" />
                   <Text style={styles.qrShareText}>
-                    {language === 'ja' ? '相手のQRをスキャン' : 'Scan a QR Code'}
+                    {t('scan_qr_button', language)}
                   </Text>
                 </Pressable>
 
@@ -430,14 +426,12 @@ export default function ProfileScreen() {
                 <Pressable onPress={handleShareQR} style={styles.qrShareBtn}>
                   <Share2 size={18} color="#fff" />
                   <Text style={styles.qrShareText}>
-                    {language === 'ja' ? 'プロフィールをシェア' : 'Share Profile'}
+                    {t('share_profile_button', language)}
                   </Text>
                 </Pressable>
 
                 <Text style={styles.qrHint}>
-                  {language === 'ja'
-                    ? 'アプリ内の「スキャン」でQRを読み取れます'
-                    : 'Use "Scan" inside the app to read QR codes'}
+                  {t('qr_scan_hint', language)}
                 </Text>
               </>
             )}
@@ -492,7 +486,7 @@ export default function ProfileScreen() {
           )}
           <View style={styles.bioContainer}>
             <Text style={styles.bioText}>
-              {bioToShow || 'チェス歴5年。平日の夜にオンラインで対局できる方を探しています！'}
+              {bioToShow || t('no_bio', language)}
             </Text>
             {bioTranslationState.localTranslatedContent != null && (
               <Text style={[styles.bioText, { fontSize: 11, color: colors.textMuted, marginTop: 4, fontStyle: 'italic' }]}>

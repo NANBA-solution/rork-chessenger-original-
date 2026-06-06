@@ -83,7 +83,7 @@ export default function SettingsScreen() {
 
   const handleReport = useCallback(() => {
     Haptics.selectionAsync();
-    const subject = encodeURIComponent(language === 'ja' ? '【CHESSENGER 通報】' : '【CHESSENGER Report】');
+    const subject = encodeURIComponent(t('report_subject_prefix', language));
     Linking.openURL(`mailto:chessenger.co.ltd@gmail.com?subject=${subject}`);
   }, [language]);
 

@@ -88,7 +88,7 @@ function SwipeableConversation({
     item.lastMessage.senderId === currentUserId ||
     item.lastMessage.senderId === 'me';
   const previewText = item.lastMessage.text.startsWith('__IMG__')
-    ? '📷 画像'
+    ? t('image_attachment', language)
     : item.lastMessage.text;
 
   return (
@@ -339,7 +339,7 @@ export default function MessagesScreen() {
     if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
     Alert.alert(
       t('block_confirm', language),
-      language === 'ja' ? `${conv.player.name}をブロックしますか？` : `Block ${conv.player.name}?`,
+      t('block_user_confirm_named', language, { name: conv.player.name }),
       [
         { text: t('cancel', language), style: 'cancel' },
         {

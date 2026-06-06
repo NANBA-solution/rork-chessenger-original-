@@ -66,7 +66,7 @@ function formatDateLabel(isoStr: string, language: string): string {
   yesterday.setDate(today.getDate() - 1);
   if (d.toDateString() === today.toDateString()) return t('today', language);
   if (d.toDateString() === yesterday.toDateString()) return t('yesterday', language);
-  return language === 'ja' ? `${d.getMonth() + 1}月${d.getDate()}日` : `${d.getMonth() + 1}/${d.getDate()}`;
+  return t('date_format_short', language, { month: d.getMonth() + 1, day: d.getDate() });
 }
 
 function buildListItems(messages: Message[], language: string): ListItem[] {
@@ -390,7 +390,7 @@ function MessageBubble({
               <SafeImage uri={imageUrl} name="" style={styles.imageMessage} contentFit="cover" />
             </Pressable>
           ) : (isImage || imageUrl) && imageUrl ? (
-            <Text style={[styles.bubbleText, isMe ? styles.bubbleTextMe : styles.bubbleTextOther]}>📷 画像</Text>
+            <Text style={[styles.bubbleText, isMe ? styles.bubbleTextMe : styles.bubbleTextOther]}>{t('image_attachment', language)}</Text>
           ) : (
             <View key={translationState.renderKey ?? `msg-${item.id}`}>
               <Text style={[styles.bubbleText, isMe ? styles.bubbleTextMe : styles.bubbleTextOther]}>
@@ -634,14 +634,14 @@ export default function ChatScreen() {
       if (error) {
         console.log('Chat: Send failed', error.message);
         setMessages(prev => prev.filter(m => m.id !== tempId));
-        Alert.alert(t('error', language), `送信に失敗しました: ${error.message}`);
+        Alert.alert(t('error', language), t('send_failed_detail', language, { detail: error.message }));
       }
       return false;
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       console.log('Chat: Send failed', e);
       setMessages(prev => prev.filter(m => m.id !== tempId));
-      Alert.alert(t('error', language), `送信に失敗しました: ${msg}`);
+      Alert.alert(t('error', language), t('send_failed_detail', language, { detail: msg }));
       return false;
     }
   }, [currentUserId, getActualRoomId, language]);
@@ -667,7 +667,7 @@ export default function ChatScreen() {
     if (Platform.OS !== 'web') {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert('アクセス許可が必要です', 'フォトライブラリへのアクセスを許可してください。');
+        Alert.alert(t('photo_permission_title', language), t('photo_permission_desc', language));
         return;
       }
     }
@@ -692,13 +692,13 @@ export default function ChatScreen() {
         const { data: { user } } = await supabase.auth.getUser();
         const authUserId = user?.id;
         if (!authUserId) {
-          Alert.alert(t('error', language), 'ログイン情報を取得できなかったため、画像を送信できませんでした。');
+          Alert.alert(t('error', language), t('auth_required_for_image', language));
           return;
         }
 
         setIsUploadingImage(true);
         try {
-          const uploadResult = await uploadMessageImage(localUri, authUserId, actualRoomId, base64);
+          const uploadResult = await uploadMessageImage(localUri, authUserId, actualRoomId, base64, language);
           if ('url' in uploadResult) {
             await sendContent(encodeImageContent(uploadResult.url));
           } else {

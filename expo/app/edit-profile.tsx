@@ -168,7 +168,7 @@ export default function EditProfileScreen() {
         } else {
           // Upload failed — revert to previous avatar, do not persist local path
           setAvatar(profile.avatar);
-          Alert.alert('Upload failed', 'Could not upload avatar. Please try again.');
+          Alert.alert(t('upload_failed', language), t('upload_failed_desc', language));
         }
       }
     } catch (e) {
@@ -216,7 +216,7 @@ export default function EditProfileScreen() {
       ]);
     } else {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      Alert.alert('Error', 'Failed to save profile. Please try again.');
+      Alert.alert(t('error', language), t('save_profile_failed', language));
     }
   }, [name, bio, location, avatar, skillLevel, timeControl, chessComRating, lichessRating, country, selectedPlayStyles, updateProfile, updateAuthProfile, reloadUser, language, router]);
 

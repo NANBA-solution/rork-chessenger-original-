@@ -1106,8 +1106,12 @@ export const [ChessProvider, useChess] = createContextHook(() => {
         playMessageNotificationSound();
         try {
           const sender = await fetchPlayerProfile(msg.sender_id);
-          const preview = (msg.content || '').startsWith('__IMG__') ? '📷 画像' : (msg.content || '').substring(0, 60);
-          const content = sender ? `${sender.name}: ${preview}` : `New message: ${preview}`;
+          const preview = (msg.content || '').startsWith('__IMG__')
+            ? t('image_attachment', language)
+            : (msg.content || '').substring(0, 60);
+          const content = sender
+            ? t('notification_from_user', language, { name: sender.name, preview })
+            : t('new_message_notification', language, { preview });
           await supabase.from('notifications').insert({
             user_id: currentUserId,
             type: 'new_message',
@@ -1366,7 +1370,7 @@ export const [ChessProvider, useChess] = createContextHook(() => {
       if (postsChannel) supabase.removeChannel(postsChannel);
       if (eventsChannel) supabase.removeChannel(eventsChannel);
     };
-  }, [userLocation, currentUserId, fetchPlayerProfile, fetchUnreadCountByUser, profile]);
+  }, [userLocation, currentUserId, fetchPlayerProfile, fetchUnreadCountByUser, profile, language]);
 
   const players = useMemo(() => {
     return supabasePlayers.filter(p => !blockedUsers.includes(p.id));

@@ -5,12 +5,15 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated, Platform } from 'react-native';
 import { Image } from 'expo-image';
+import { useChess } from '@/providers/ChessProvider';
+import { t } from '@/utils/translations';
 
 const useNativeDriver = Platform.OS !== 'web';
 const ICON_SIZE = 100;
 const BG = '#FFFFFF';
 
 export function AnimatedLogoSplash({ onComplete }: { onComplete?: () => void }) {
+  const { language } = useChess();
   const iconScale   = useRef(new Animated.Value(0.4)).current;
   const iconOpacity = useRef(new Animated.Value(0)).current;
   const textOpacity = useRef(new Animated.Value(0)).current;
@@ -74,9 +77,9 @@ export function AnimatedLogoSplash({ onComplete }: { onComplete?: () => void }) 
       });
 
   const titleNode = isWeb ? (
-    <Text style={[styles.title, { color: '#18181B' }]}>Chessenger</Text>
+    <Text style={[styles.title, { color: '#18181B' }]}>{t('app_name', language)}</Text>
   ) : (
-    <Animated.Text style={[styles.title, { color: titleColor }]}>Chessenger</Animated.Text>
+    <Animated.Text style={[styles.title, { color: titleColor }]}>{t('app_name', language)}</Animated.Text>
   );
 
   return (
@@ -103,7 +106,7 @@ export function AnimatedLogoSplash({ onComplete }: { onComplete?: () => void }) 
         {titleNode}
         <View style={styles.subtitleRow}>
           <Animated.View style={[styles.dot, { transform: [{ scale: dotScale }] }]} />
-          <Text style={styles.subtitle}>Find your match</Text>
+          <Text style={styles.subtitle}>{t('login_subtitle', language)}</Text>
           <Animated.View style={[styles.dot, { transform: [{ scale: dotScale }] }]} />
         </View>
       </Animated.View>

@@ -150,7 +150,7 @@ export default function OnboardingScreen() {
         <View style={styles.topActions}>
           <Pressable onPress={handleToggleLanguage} style={styles.pillBtn}>
             <Languages size={14} color={colors.textSecondary} />
-            <Text style={styles.pillBtnText}>{language === 'ja' ? 'EN' : 'JA'}</Text>
+            <Text style={styles.pillBtnText}>{language === 'ja' ? t('lang_switch_to_en', language) : t('lang_switch_to_ja', language)}</Text>
           </Pressable>
           <Pressable onPress={finish} hitSlop={12} style={styles.pillBtn}>
             <Text style={styles.skipText}>{t('onboarding_skip', language)}</Text>

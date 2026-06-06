@@ -496,11 +496,13 @@ function PostCard({
     const day = d.getDate();
     const hh = String(d.getHours()).padStart(2, '0');
     const mm = String(d.getMinutes()).padStart(2, '0');
-    if (language === 'ja') {
-      return `${m}月${day}日 ${hh}:${mm}`;
-    }
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return `${months[m - 1]} ${day}, ${hh}:${mm}`;
+    return t('datetime_md_hm', language, {
+      month: language === 'ja' ? String(m) : months[m - 1],
+      day: String(day),
+      hour: hh,
+      minute: mm,
+    });
   };
 
   return (
@@ -863,19 +865,20 @@ export default function TimelineScreen() {
           const result = await uploadTimelineImage(
             imageUrl,
             user.id,
-            postImageBase64 ?? undefined
+            postImageBase64 ?? undefined,
+            language,
           );
           if ('url' in result) {
             imageUrl = result.url;
           } else {
-            Alert.alert(language === 'ja' ? '画像エラー' : 'Image Error', result.error);
+            Alert.alert(t('image_error', language), result.error);
             imageUrl = undefined;
             if (!hasText) return;
           }
         } else {
           Alert.alert(
-            language === 'ja' ? '認証エラー' : 'Auth Error',
-            language === 'ja' ? '再ログインしてください' : 'Please log in again'
+            t('auth_error', language),
+            t('auth_error_relogin', language)
           );
           imageUrl = undefined;
           if (!hasText) return;
@@ -896,7 +899,7 @@ export default function TimelineScreen() {
     try {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert('権限が必要です', 'フォトライブラリへのアクセスを許可してください。');
+        Alert.alert(t('permission_required_title', language), t('photo_permission_desc', language));
         return;
       }
       const result = await ImagePicker.launchImageLibraryAsync({
@@ -924,11 +927,12 @@ export default function TimelineScreen() {
     const y = date.getFullYear();
     const m = date.getMonth() + 1;
     const d = date.getDate();
-    if (language === 'ja') {
-      return `${y}年${m}月${d}日`;
-    }
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return `${months[m - 1]} ${d}, ${y}`;
+    return t('date_format_ymd', language, {
+      year: String(y),
+      month: language === 'ja' ? String(m) : months[m - 1],
+      day: String(d),
+    });
   }, [language]);
 
   const formatTimeDisplay = useCallback((h: number, m: number): string => {
@@ -1126,7 +1130,7 @@ export default function TimelineScreen() {
           style={[styles.filterTab, filter === 'all' && styles.filterTabActive]}
         >
           <Text style={[styles.filterTabText, filter === 'all' && styles.filterTabTextActive]}>
-            {language === 'ja' ? 'すべて' : 'All'}
+            {t('filter_all_posts', language)}
           </Text>
         </Pressable>
         <Pressable
@@ -1134,7 +1138,7 @@ export default function TimelineScreen() {
           style={[styles.filterTab, filter === 'events' && styles.filterTabActive]}
         >
           <Text style={[styles.filterTabText, filter === 'events' && styles.filterTabTextActive]}>
-            {language === 'ja' ? 'イベントのみ' : 'Events only'}
+            {t('filter_events_only', language)}
           </Text>
         </Pressable>
         <Pressable
@@ -1273,7 +1277,7 @@ export default function TimelineScreen() {
               <View style={styles.pickerContainer}>
                 <View style={styles.pickerRow}>
                   <View style={styles.pickerColumn}>
-                    <Text style={styles.pickerColumnLabel}>{language === 'ja' ? '年' : 'Year'}</Text>
+                    <Text style={styles.pickerColumnLabel}>{t('picker_year', language)}</Text>
                     <View style={styles.pickerSpinner}>
                       <Pressable onPress={() => adjustDate('year', -1)} style={styles.pickerArrow}>
                         <Text style={styles.pickerArrowText}>▲</Text>
@@ -1285,7 +1289,7 @@ export default function TimelineScreen() {
                     </View>
                   </View>
                   <View style={styles.pickerColumn}>
-                    <Text style={styles.pickerColumnLabel}>{language === 'ja' ? '月' : 'Month'}</Text>
+                    <Text style={styles.pickerColumnLabel}>{t('picker_month', language)}</Text>
                     <View style={styles.pickerSpinner}>
                       <Pressable onPress={() => adjustDate('month', -1)} style={styles.pickerArrow}>
                         <Text style={styles.pickerArrowText}>▲</Text>
@@ -1297,7 +1301,7 @@ export default function TimelineScreen() {
                     </View>
                   </View>
                   <View style={styles.pickerColumn}>
-                    <Text style={styles.pickerColumnLabel}>{language === 'ja' ? '日' : 'Day'}</Text>
+                    <Text style={styles.pickerColumnLabel}>{t('picker_day', language)}</Text>
                     <View style={styles.pickerSpinner}>
                       <Pressable onPress={() => adjustDate('day', -1)} style={styles.pickerArrow}>
                         <Text style={styles.pickerArrowText}>▲</Text>
@@ -1310,7 +1314,7 @@ export default function TimelineScreen() {
                   </View>
                 </View>
                 <Pressable onPress={() => setShowDatePicker(false)} style={styles.pickerDoneBtn}>
-                  <Text style={styles.pickerDoneText}>{language === 'ja' ? '完了' : 'Done'}</Text>
+                  <Text style={styles.pickerDoneText}>{t('done', language)}</Text>
                 </Pressable>
               </View>
             )}
@@ -1330,7 +1334,7 @@ export default function TimelineScreen() {
               <View style={styles.pickerContainer}>
                 <View style={styles.pickerRow}>
                   <View style={styles.pickerColumn}>
-                    <Text style={styles.pickerColumnLabel}>{language === 'ja' ? '時' : 'Hour'}</Text>
+                    <Text style={styles.pickerColumnLabel}>{t('picker_hour', language)}</Text>
                     <View style={styles.pickerSpinner}>
                       <Pressable onPress={() => adjustTime('hour', -1)} style={styles.pickerArrow}>
                         <Text style={styles.pickerArrowText}>▲</Text>
@@ -1343,7 +1347,7 @@ export default function TimelineScreen() {
                   </View>
                   <Text style={styles.pickerSeparator}>:</Text>
                   <View style={styles.pickerColumn}>
-                    <Text style={styles.pickerColumnLabel}>{language === 'ja' ? '分' : 'Min'}</Text>
+                    <Text style={styles.pickerColumnLabel}>{t('picker_minute', language)}</Text>
                     <View style={styles.pickerSpinner}>
                       <Pressable onPress={() => adjustTime('minute', -15)} style={styles.pickerArrow}>
                         <Text style={styles.pickerArrowText}>▲</Text>
@@ -1356,7 +1360,7 @@ export default function TimelineScreen() {
                   </View>
                 </View>
                 <Pressable onPress={() => setShowTimePicker(false)} style={styles.pickerDoneBtn}>
-                  <Text style={styles.pickerDoneText}>{language === 'ja' ? '完了' : 'Done'}</Text>
+                  <Text style={styles.pickerDoneText}>{t('done', language)}</Text>
                 </Pressable>
               </View>
             )}
@@ -1376,7 +1380,7 @@ export default function TimelineScreen() {
               <View style={styles.pickerContainer}>
                 <View style={styles.pickerRow}>
                   <View style={styles.pickerColumn}>
-                    <Text style={styles.pickerColumnLabel}>{language === 'ja' ? '年' : 'Year'}</Text>
+                    <Text style={styles.pickerColumnLabel}>{t('picker_year', language)}</Text>
                     <View style={styles.pickerSpinner}>
                       <Pressable onPress={() => adjustDeadlineDate('year', -1)} style={styles.pickerArrow}>
                         <Text style={styles.pickerArrowText}>▲</Text>
@@ -1388,7 +1392,7 @@ export default function TimelineScreen() {
                     </View>
                   </View>
                   <View style={styles.pickerColumn}>
-                    <Text style={styles.pickerColumnLabel}>{language === 'ja' ? '月' : 'Month'}</Text>
+                    <Text style={styles.pickerColumnLabel}>{t('picker_month', language)}</Text>
                     <View style={styles.pickerSpinner}>
                       <Pressable onPress={() => adjustDeadlineDate('month', -1)} style={styles.pickerArrow}>
                         <Text style={styles.pickerArrowText}>▲</Text>
@@ -1400,7 +1404,7 @@ export default function TimelineScreen() {
                     </View>
                   </View>
                   <View style={styles.pickerColumn}>
-                    <Text style={styles.pickerColumnLabel}>{language === 'ja' ? '日' : 'Day'}</Text>
+                    <Text style={styles.pickerColumnLabel}>{t('picker_day', language)}</Text>
                     <View style={styles.pickerSpinner}>
                       <Pressable onPress={() => adjustDeadlineDate('day', -1)} style={styles.pickerArrow}>
                         <Text style={styles.pickerArrowText}>▲</Text>
@@ -1413,7 +1417,7 @@ export default function TimelineScreen() {
                   </View>
                 </View>
                 <Pressable onPress={() => setShowDeadlineDatePicker(false)} style={styles.pickerDoneBtn}>
-                  <Text style={styles.pickerDoneText}>{language === 'ja' ? '完了' : 'Done'}</Text>
+                  <Text style={styles.pickerDoneText}>{t('done', language)}</Text>
                 </Pressable>
               </View>
             )}
@@ -1431,7 +1435,7 @@ export default function TimelineScreen() {
               <View style={styles.pickerContainer}>
                 <View style={styles.pickerRow}>
                   <View style={styles.pickerColumn}>
-                    <Text style={styles.pickerColumnLabel}>{language === 'ja' ? '時' : 'Hour'}</Text>
+                    <Text style={styles.pickerColumnLabel}>{t('picker_hour', language)}</Text>
                     <View style={styles.pickerSpinner}>
                       <Pressable onPress={() => adjustDeadlineTime('hour', -1)} style={styles.pickerArrow}>
                         <Text style={styles.pickerArrowText}>▲</Text>
@@ -1444,7 +1448,7 @@ export default function TimelineScreen() {
                   </View>
                   <Text style={styles.pickerSeparator}>:</Text>
                   <View style={styles.pickerColumn}>
-                    <Text style={styles.pickerColumnLabel}>{language === 'ja' ? '分' : 'Min'}</Text>
+                    <Text style={styles.pickerColumnLabel}>{t('picker_minute', language)}</Text>
                     <View style={styles.pickerSpinner}>
                       <Pressable onPress={() => adjustDeadlineTime('minute', -15)} style={styles.pickerArrow}>
                         <Text style={styles.pickerArrowText}>▲</Text>
@@ -1457,7 +1461,7 @@ export default function TimelineScreen() {
                   </View>
                 </View>
                 <Pressable onPress={() => setShowDeadlineTimePicker(false)} style={styles.pickerDoneBtn}>
-                  <Text style={styles.pickerDoneText}>{language === 'ja' ? '完了' : 'Done'}</Text>
+                  <Text style={styles.pickerDoneText}>{t('done', language)}</Text>
                 </Pressable>
               </View>
             )}
@@ -1521,19 +1525,19 @@ export default function TimelineScreen() {
 
                 {/* 締切日設定 */}
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8, marginBottom: 4 }}>
-                  <Text style={styles.modalLabel}>{language === 'ja' ? '締切日を設定' : 'Set Deadline'}</Text>
+                  <Text style={styles.modalLabel}>{t('set_deadline', language)}</Text>
                   <Pressable
                     onPress={() => setEditHasDeadline(v => !v)}
                     style={[styles.pickerArrow, { paddingHorizontal: 14, paddingVertical: 6, borderRadius: 8, backgroundColor: editHasDeadline ? colors.gold : colors.surface }]}
                   >
                     <Text style={{ fontSize: 13, fontWeight: '600', color: editHasDeadline ? colors.white : colors.textMuted }}>
-                      {editHasDeadline ? (language === 'ja' ? 'ON' : 'ON') : (language === 'ja' ? 'OFF' : 'OFF')}
+                      {editHasDeadline ? t('toggle_on', language) : t('toggle_off', language)}
                     </Text>
                   </Pressable>
                 </View>
                 {editHasDeadline && (
                   <>
-                    <Text style={styles.modalLabel}>{language === 'ja' ? '締切日' : 'Deadline Date'}</Text>
+                    <Text style={styles.modalLabel}>{t('deadline_date', language)}</Text>
                     <View style={[styles.pickerRow, { justifyContent: 'center', gap: 16 }]}>
                       <Pressable onPress={() => setEditEventDeadlineDate(prev => { const n = new Date(prev); n.setDate(n.getDate() - 1); return n; })} style={styles.pickerArrow}>
                         <Text style={styles.pickerArrowText}>◀</Text>
@@ -1543,7 +1547,7 @@ export default function TimelineScreen() {
                         <Text style={styles.pickerArrowText}>▶</Text>
                       </Pressable>
                     </View>
-                    <Text style={styles.modalLabel}>{language === 'ja' ? '締切時刻' : 'Deadline Time'}</Text>
+                    <Text style={styles.modalLabel}>{t('deadline_time', language)}</Text>
                     <TextInput
                       style={styles.modalInput}
                       value={`${String(editEventDeadlineHour).padStart(2, '0')}:${String(editEventDeadlineMinute).padStart(2, '0')}`}

@@ -145,7 +145,7 @@ export default function MapScreen() {
             <Text style={[styles.mapHeaderTitle, { color: colors.textPrimary }]}>{t('map_view', language)}</Text>
           </View>
           <Text style={[styles.mapHeaderSubtitle, { color: colors.textMuted }]}>
-            {language === 'ja' ? 'ピンをタップしてプレイヤー詳細を表示' : 'Tap pins to view player details'}
+            {t('map_pin_hint', language)}
           </Text>
         </View>
       </SafeAreaView>

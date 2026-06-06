@@ -145,9 +145,7 @@ export default function BlockedPlayersScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     Alert.alert(
       t('unblock_user', language),
-      language === 'ja'
-        ? `${profile.name} のブロックを解除しますか？`
-        : `Unblock ${profile.name}?`,
+      t('unblock_user_confirm_named', language, { name: profile.name }),
       [
         { text: t('cancel', language), style: 'cancel' },
         {
