@@ -43,6 +43,8 @@ export function GuestBootRedirect({ expectedTarget }: Props) {
   }, [isLoading, isLoggedIn]);
 
   if (isLoading || target === 'loading') {
+    // オンボード/ログイン画面は自前のUIを出す（子として埋め込まれたときに固まらないよう）
+    if (expectedTarget) return null;
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
         <ActivityIndicator size="large" color="#7C3AED" />
