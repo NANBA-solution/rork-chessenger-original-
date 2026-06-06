@@ -2,9 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { Redirect } from 'expo-router';
 import { useAuth } from '@/providers/AuthProvider';
+import { useOnboardingSessionVersion } from '@/hooks/useOnboardingSession';
 import {
   guestBootHref,
-  resolveGuestBootTarget,
+  resolveGuestBootTargetSync,
   type GuestBootTarget,
 } from '@/utils/onboardingRouting';
 
@@ -20,30 +21,14 @@ export function GuestBootRedirect({ expectedTarget }: Props) {
   const auth = useAuth();
   const isLoading = auth?.isLoading ?? true;
   const isLoggedIn = auth?.isLoggedIn ?? false;
-  const [target, setTarget] = useState<GuestBootTarget>('loading');
+  useOnboardingSessionVersion();
+  const [authReady, setAuthReady] = useState(!isLoading);
 
   useEffect(() => {
-    if (isLoading) return;
+    if (!isLoading) setAuthReady(true);
+  }, [isLoading]);
 
-    if (isLoggedIn) {
-      setTarget('home');
-      return;
-    }
-
-    let cancelled = false;
-    setTarget('loading');
-    void (async () => {
-      const next = await resolveGuestBootTarget(false);
-      if (!cancelled) setTarget(next);
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [isLoading, isLoggedIn]);
-
-  if (isLoading || target === 'loading') {
-    // オンボード/ログイン画面は自前のUIを出す（子として埋め込まれたときに固まらないよう）
+  if (!authReady || isLoading) {
     if (expectedTarget) return null;
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
@@ -51,6 +36,8 @@ export function GuestBootRedirect({ expectedTarget }: Props) {
       </View>
     );
   }
+
+  const target: GuestBootTarget = resolveGuestBootTargetSync(isLoggedIn);
 
   if (isLoggedIn) {
     return <Redirect href="/(tabs)/(home)/search" />;

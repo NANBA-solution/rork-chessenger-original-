@@ -1,6 +1,6 @@
 import { Tabs, Redirect } from 'expo-router';
 import { Search, Swords, User, Newspaper, MessageCircle } from 'lucide-react-native';
-import React, { useRef, useEffect, useCallback, useState } from 'react';
+import React, { useRef, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -16,11 +16,11 @@ import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useTheme } from '@/providers/ThemeProvider';
 import { useChess } from '@/providers/ChessProvider';
 import { useAuth } from '@/providers/AuthProvider';
+import { useOnboardingSessionVersion } from '@/hooks/useOnboardingSession';
 import {
   guestBootHref,
-  resolveGuestBootTarget,
+  resolveGuestBootTargetSync,
   shouldForceGuestRedirect,
-  type GuestBootTarget,
 } from '@/utils/onboardingRouting';
 import { ThemeColors } from '@/constants/colors';
 import { t } from '@/utils/translations';
@@ -323,29 +323,10 @@ export default function TabLayout() {
   const auth = useAuth();
   const isLoggedIn = auth?.isLoggedIn ?? false;
   const isLoading = auth?.isLoading ?? true;
-  const [guestTarget, setGuestTarget] = useState<GuestBootTarget | 'allowed'>('loading');
+  useOnboardingSessionVersion();
+  const guestTarget = isLoggedIn ? 'allowed' : resolveGuestBootTargetSync(false);
 
-  useEffect(() => {
-    if (isLoading) return;
-
-    if (isLoggedIn) {
-      setGuestTarget('allowed');
-      return;
-    }
-
-    let cancelled = false;
-    setGuestTarget('loading');
-    void (async () => {
-      const next = await resolveGuestBootTarget(false);
-      if (!cancelled) setGuestTarget(next);
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [isLoading, isLoggedIn]);
-
-  if (!isLoggedIn && (isLoading || guestTarget === 'loading')) {
+  if (!isLoggedIn && isLoading) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
         <ActivityIndicator size="large" color="#7C3AED" />
@@ -353,7 +334,7 @@ export default function TabLayout() {
     );
   }
 
-  if (!isLoggedIn && guestTarget !== 'allowed' && shouldForceGuestRedirect(guestTarget, ['(tabs)'])) {
+  if (!isLoggedIn && guestTarget !== 'allowed' && shouldForceGuestRedirect(guestTarget as 'onboarding' | 'signup', ['(tabs)'])) {
     const href = guestBootHref(guestTarget);
     if (href) return <Redirect href={href as any} />;
   }

@@ -1,9 +1,14 @@
-import { isOnboardingComplete } from '@/utils/onboardingStorage';
+import { isOnboardingComplete, isOnboardingCompleteSync } from '@/utils/onboardingStorage';
 import { ONBOARDING_HREF, SIGNUP_LOGIN_HREF } from '@/utils/authRouting';
 
 export type GuestBootTarget = 'loading' | 'onboarding' | 'signup' | 'home';
 
 /** 認証状態に応じた起動先（ログイン済みはホーム、未登録は毎回オンボード→同一セッション内のみ登録） */
+export function resolveGuestBootTargetSync(isLoggedIn: boolean): GuestBootTarget {
+  if (isLoggedIn) return 'home';
+  return isOnboardingCompleteSync() ? 'signup' : 'onboarding';
+}
+
 export async function resolveGuestBootTarget(isLoggedIn: boolean): Promise<GuestBootTarget> {
   if (isLoggedIn) return 'home';
   const done = await isOnboardingComplete();

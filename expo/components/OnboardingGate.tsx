@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Redirect, useRootNavigationState, useSegments } from 'expo-router';
 import { useAuth } from '@/providers/AuthProvider';
+import { useOnboardingSessionVersion } from '@/hooks/useOnboardingSession';
 import {
   guestBootHref,
-  resolveGuestBootTarget,
+  resolveGuestBootTargetSync,
   shouldForceGuestRedirect,
-  type GuestBootTarget,
 } from '@/utils/onboardingRouting';
 
 /**
@@ -17,31 +17,13 @@ export function OnboardingGate({ enabled }: { enabled: boolean }) {
   const rootState = useRootNavigationState();
   const isLoading = auth?.isLoading ?? true;
   const isLoggedIn = auth?.isLoggedIn ?? false;
-  const [target, setTarget] = useState<GuestBootTarget>('loading');
+  useOnboardingSessionVersion();
 
-  useEffect(() => {
-    if (!enabled || !rootState?.key || isLoading) return;
-
-    if (isLoggedIn) {
-      setTarget('home');
-      return;
-    }
-
-    let cancelled = false;
-    setTarget('loading');
-    void (async () => {
-      const next = await resolveGuestBootTarget(false);
-      if (!cancelled) setTarget(next);
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [enabled, rootState?.key, isLoading, isLoggedIn]);
-
-  if (!enabled || isLoading || target === 'loading' || target === 'home') {
+  if (!enabled || !rootState?.key || isLoading || isLoggedIn) {
     return null;
   }
+
+  const target = resolveGuestBootTargetSync(false);
 
   if (!shouldForceGuestRedirect(target, segments)) {
     return null;

@@ -2,6 +2,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 /** 永続化しない。アプリ再起動のたびにオンボードを出す（未登録ユーザー向け） */
 let guestOnboardingDoneThisSession = false;
+let sessionVersion = 0;
+
+const sessionListeners = new Set<() => void>();
 
 const LEGACY_ONBOARDING_KEYS = [
   'chess_onboarding_seen_v4',
@@ -9,6 +12,24 @@ const LEGACY_ONBOARDING_KEYS = [
   'chess_onboarding_seen_v2',
   'chess_onboarding_complete',
 ] as const;
+
+function notifySessionChange(): void {
+  sessionVersion += 1;
+  sessionListeners.forEach((listener) => listener());
+}
+
+export function getOnboardingSessionVersion(): number {
+  return sessionVersion;
+}
+
+export function subscribeOnboardingSession(listener: () => void): () => void {
+  sessionListeners.add(listener);
+  return () => sessionListeners.delete(listener);
+}
+
+export function isOnboardingCompleteSync(): boolean {
+  return guestOnboardingDoneThisSession;
+}
 
 /** この起動セッションでオンボードを完了したか（永続化しない） */
 export async function isOnboardingComplete(): Promise<boolean> {
@@ -18,6 +39,7 @@ export async function isOnboardingComplete(): Promise<boolean> {
 /** オンボード完了（同一セッション内のみ有効。次回起動では再表示） */
 export async function completeOnboarding(): Promise<void> {
   guestOnboardingDoneThisSession = true;
+  notifySessionChange();
   try {
     await AsyncStorage.multiRemove([...LEGACY_ONBOARDING_KEYS]);
   } catch {
@@ -28,6 +50,7 @@ export async function completeOnboarding(): Promise<void> {
 /** ログアウト時など: オンボードを再度表示する */
 export async function resetOnboarding(): Promise<void> {
   guestOnboardingDoneThisSession = false;
+  notifySessionChange();
   try {
     await AsyncStorage.multiRemove([...LEGACY_ONBOARDING_KEYS]);
   } catch {
