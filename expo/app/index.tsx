@@ -9,7 +9,8 @@ import { useAuth } from '@/providers/AuthProvider';
  */
 export default function AppIndex() {
   const router = useRouter();
-  const { isLoading } = useAuth();
+  const auth = useAuth();
+  const isLoading = auth?.isLoading ?? true;
   const routed = useRef(false);
 
   useEffect(() => {

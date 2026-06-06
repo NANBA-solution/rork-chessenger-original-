@@ -1,7 +1,8 @@
 /**
- * Rork プレビュー用: toolkit-sdk より先に読み込み、空の {} エラー表示を防ぐ。
+ * Rork Web プレビュー専用: toolkit-sdk より先に読み込み、空の {} エラー表示を防ぐ。
+ * ネイティブでは window があっても addEventListener が無い → 起動クラッシュの原因になるため実行しない。
  */
-if (typeof window !== 'undefined') {
+if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
   const nativeConsoleError: typeof console.error = console.error.bind(console);
 
   function coerceToError(value: unknown): Error {

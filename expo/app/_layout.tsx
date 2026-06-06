@@ -1,7 +1,3 @@
-import "@/rork-error-shim";
-import { installRorkWebErrorNormalize } from "@/utils/rorkWebErrorNormalize";
-installRorkWebErrorNormalize();
-
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack, useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -100,6 +96,10 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
+    if (Platform.OS === 'web') {
+      void import('@/rork-error-shim');
+      void import('@/utils/rorkWebErrorNormalize').then((m) => m.installRorkWebErrorNormalize());
+    }
     void import('@/utils/notifications').then((m) => m.setupNotificationHandler());
 
     // ネイティブスプラッシュを早めに隠してカスタムアニメーションを表示

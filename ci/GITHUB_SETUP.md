@@ -64,5 +64,6 @@ GitHub → **Actions** → **iOS TestFlight Upload** → **Run workflow** → br
 | unable to cache dependencies | `expo` に `package-lock.json` が無いため npm キャッシュは無効（`package-manager-cache: false`） |
 | altool 90062 / CFBundleShortVersionString | `expo/app.json` の `version` を **App Store 承認済みより大きく**（例: 1.3.0 済みなら 1.4.0）して再ビルド |
 | 審査 **crashed on launch** | CI で `expo/.env` を書き込み済みか確認。Actions の **Verify Supabase env in JS bundle** が緑であること |
+| `window.addEventListener is not a function` | `rork-error-shim` は **Web のみ**（ネイティブで import すると起動クラッシュ） |
 | prebuild / pod 失敗 | Actions ログの該当ステップを確認 |
 | ビルドが Connect に出ない | Processing 5〜30 分待つ |
