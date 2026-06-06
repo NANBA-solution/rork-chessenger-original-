@@ -234,9 +234,6 @@ export default function LoginScreen() {
   const [name, setName] = useState<string>('');
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
-  const [chessComRating, setChessComRating] = useState<string>('');
-  const [lichessRating, setLichessRating] = useState<string>('');
-  const [bio, setBio] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [termsAgreed, setTermsAgreed] = useState<boolean>(false);
 
@@ -291,9 +288,6 @@ export default function LoginScreen() {
         }
       } else {
         const result = await register(name, email, password, {
-          chessComRating: parseInt(chessComRating) || 0,
-          lichessRating: parseInt(lichessRating) || 0,
-          bio,
           skillLevel: 'beginner',
         });
         if (result.success) {
@@ -313,7 +307,7 @@ export default function LoginScreen() {
     } finally {
       setLoading(false);
     }
-  }, [isLogin, name, email, password, chessComRating, lichessRating, bio, loading, login, register, router]);
+  }, [isLogin, name, email, password, loading, login, register, router, language]);
 
   return (
     <View style={styles.container}>
@@ -390,35 +384,6 @@ export default function LoginScreen() {
                 secureTextEntry
               />
             </View>
-
-            {!isLogin && (
-              <>
-                <TextInput
-                  style={[styles.inputWrap, styles.input, { paddingHorizontal: 20 }]}
-                  placeholder="Chess.com Rating (optional)"
-                  placeholderTextColor="#9CA3AF"
-                  value={chessComRating}
-                  onChangeText={setChessComRating}
-                  keyboardType="number-pad"
-                />
-                <TextInput
-                  style={[styles.inputWrap, styles.input, { paddingHorizontal: 20 }]}
-                  placeholder="Lichess Rating (optional)"
-                  placeholderTextColor="#9CA3AF"
-                  value={lichessRating}
-                  onChangeText={setLichessRating}
-                  keyboardType="number-pad"
-                />
-                <TextInput
-                  style={[styles.inputWrap, styles.input, { paddingHorizontal: 20, height: 80, textAlignVertical: 'top', paddingTop: 14 }]}
-                  placeholder="Bio (optional)"
-                  placeholderTextColor="#9CA3AF"
-                  value={bio}
-                  onChangeText={setBio}
-                  multiline
-                />
-              </>
-            )}
 
             {!isLogin && (
               <View style={styles.termsWrap}>
