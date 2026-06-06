@@ -100,7 +100,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
           await AsyncStorage.multiRemove(AUTH_STORAGE_KEYS).catch(() => {});
           setUser(null);
           if (initialLoadDone.current) {
-            try { router.replace('/login' as any); } catch (e) { console.log('Auth: Nav to login failed', e); }
+            try { router.replace('/' as any); } catch (e) { console.log('Auth: Nav to boot failed', e); }
           }
           return true;
         }
@@ -117,7 +117,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
         await AsyncStorage.multiRemove(AUTH_STORAGE_KEYS);
         setUser(null);
         if (initialLoadDone.current) {
-          try { router.replace('/login' as any); } catch (e) { console.log('Auth: Nav to login failed', e); }
+          try { router.replace('/' as any); } catch (e) { console.log('Auth: Nav to boot failed', e); }
         }
         return true;
       }
@@ -254,7 +254,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
         // （ログイン成功後に navigate で pop-to-root できるように）
         if (initialLoadDone.current) {
           try {
-            router.replace('/login' as any);
+            router.replace('/' as any);
           } catch (navErr) {
             console.log('Auth: Navigation to login failed', navErr);
           }

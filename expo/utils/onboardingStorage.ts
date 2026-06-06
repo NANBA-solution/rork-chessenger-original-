@@ -1,8 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-/** v2: 旧キーは移行しない（未登録テスターがオンボードを再確認できるようにする） */
-export const ONBOARDING_COMPLETE_KEY = 'chess_onboarding_seen_v2';
-const LEGACY_ONBOARDING_KEY = 'chess_onboarding_complete';
+/** v3: 旧キーは移行しない（テスター・審査用にオンボードを再表示できるようにする） */
+export const ONBOARDING_COMPLETE_KEY = 'chess_onboarding_seen_v3';
+const LEGACY_ONBOARDING_KEYS = ['chess_onboarding_seen_v2', 'chess_onboarding_complete'] as const;
 
 export async function isOnboardingComplete(): Promise<boolean> {
   try {
@@ -16,7 +16,7 @@ export async function isOnboardingComplete(): Promise<boolean> {
 export async function completeOnboarding(): Promise<void> {
   try {
     await AsyncStorage.setItem(ONBOARDING_COMPLETE_KEY, 'true');
-    await AsyncStorage.removeItem(LEGACY_ONBOARDING_KEY);
+    await AsyncStorage.multiRemove([...LEGACY_ONBOARDING_KEYS]);
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     throw new Error(msg || 'Failed to save onboarding state');
@@ -26,7 +26,7 @@ export async function completeOnboarding(): Promise<void> {
 /** 開発・確認用: 初回フローをやり直す */
 export async function resetOnboarding(): Promise<void> {
   try {
-    await AsyncStorage.multiRemove([ONBOARDING_COMPLETE_KEY, LEGACY_ONBOARDING_KEY]);
+    await AsyncStorage.multiRemove([ONBOARDING_COMPLETE_KEY, ...LEGACY_ONBOARDING_KEYS]);
   } catch {
     // ignore
   }

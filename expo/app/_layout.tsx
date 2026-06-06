@@ -26,6 +26,7 @@ import { ChessProvider } from "@/providers/ChessProvider";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { ThemeProvider, useTheme } from "@/providers/ThemeProvider";
 import { AnimatedLogoSplash } from "@/components/AnimatedLogoSplash";
+import { OnboardingGate } from "@/components/OnboardingGate";
 import { WebHydrationGate } from "@/components/WebHydrationGate";
 
 // スプラッシュ画面を自動で隠さないように設定（未処理 reject だと Rork で Error message: {} になる）
@@ -98,10 +99,12 @@ function RootLayoutNav() {
 export default function RootLayout() {
   // Web（Rork プレビュー）ではカスタムスプラッシュを出さない（hydration / 親フレームへの空エラー報告を避ける）
   const [showSplash, setShowSplash] = useState(Platform.OS !== 'web');
+  const [splashDone, setSplashDone] = useState(Platform.OS === 'web');
   const splashMountReady = Platform.OS !== 'web';
 
   const handleSplashComplete = useCallback(() => {
     setShowSplash(false);
+    setSplashDone(true);
   }, []);
 
   useEffect(() => {
@@ -121,6 +124,7 @@ export default function RootLayout() {
               <ThemeProvider>
                 <WebHydrationGate>
                   <RootLayoutNav />
+                  <OnboardingGate enabled={splashDone} />
                   {showSplash && splashMountReady ? (
                     <AnimatedLogoSplash onComplete={handleSplashComplete} />
                   ) : null}

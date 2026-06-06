@@ -1,6 +1,6 @@
-import { Tabs, useRouter } from 'expo-router';
+import { Tabs, Redirect } from 'expo-router';
 import { Search, Swords, User, Newspaper, MessageCircle } from 'lucide-react-native';
-import React, { useRef, useEffect, useCallback } from 'react';
+import React, { useRef, useEffect, useCallback, useState } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   Animated,
   StyleSheet,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
@@ -15,8 +16,7 @@ import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useTheme } from '@/providers/ThemeProvider';
 import { useChess } from '@/providers/ChessProvider';
 import { useAuth } from '@/providers/AuthProvider';
-import { isOnboardingComplete } from '@/utils/onboardingStorage';
-import { SIGNUP_LOGIN_HREF } from '@/utils/authRouting';
+import { guestBootHref, resolveGuestBootTarget, type GuestBootTarget } from '@/utils/onboardingRouting';
 import { ThemeColors } from '@/constants/colors';
 import { t } from '@/utils/translations';
 
@@ -291,23 +291,40 @@ export default function TabLayout() {
   const auth = useAuth();
   const isLoggedIn = auth?.isLoggedIn ?? false;
   const isLoading = auth?.isLoading ?? true;
-  const router = useRouter();
+  const [guestTarget, setGuestTarget] = useState<GuestBootTarget | 'allowed'>('allowed');
 
   useEffect(() => {
     if (isLoading) return;
 
+    if (isLoggedIn) {
+      setGuestTarget('allowed');
+      return;
+    }
+
     let cancelled = false;
+    setGuestTarget('loading');
     void (async () => {
-      if (isLoggedIn) return;
-      const done = await isOnboardingComplete();
-      if (cancelled) return;
-      router.replace(done ? (SIGNUP_LOGIN_HREF as any) : '/onboarding');
+      const next = await resolveGuestBootTarget(false);
+      if (!cancelled) setGuestTarget(next);
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [isLoading, isLoggedIn, router]);
+  }, [isLoading, isLoggedIn]);
+
+  if (!isLoggedIn && (isLoading || guestTarget === 'loading')) {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator size="large" color="#7C3AED" />
+      </View>
+    );
+  }
+
+  if (!isLoggedIn && guestTarget !== 'allowed') {
+    const href = guestBootHref(guestTarget);
+    if (href) return <Redirect href={href as any} />;
+  }
 
   return (
     <Tabs

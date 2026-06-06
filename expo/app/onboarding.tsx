@@ -11,7 +11,7 @@ import {
   Platform,
   Alert,
 } from 'react-native';
-import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
+import { Stack, Redirect, useRouter, useLocalSearchParams } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Image, type ImageSource } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -79,6 +79,7 @@ export default function OnboardingScreen() {
   const previewOnly = fromSettings || fromReview;
   const scrollRef = useRef<ScrollView>(null);
   const [page, setPage] = useState(0);
+  const [exitToSignup, setExitToSignup] = useState(false);
   const styles = useMemo(() => createStyles(colors, insets.top), [colors, insets.top]);
 
   const isLast = page === SLIDES.length - 1;
@@ -93,11 +94,15 @@ export default function OnboardingScreen() {
         return;
       }
       await completeOnboarding();
-      router.replace(SIGNUP_LOGIN_HREF as any);
+      setExitToSignup(true);
     } catch (e) {
       Alert.alert(t('error', language), formatError(e));
     }
   }, [language, previewOnly, router]);
+
+  if (exitToSignup) {
+    return <Redirect href={SIGNUP_LOGIN_HREF as any} />;
+  }
 
   const handleNext = useCallback(() => {
     if (isLast) {
