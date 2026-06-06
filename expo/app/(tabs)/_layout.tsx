@@ -360,14 +360,14 @@ export default function TabLayout() {
 
   return (
     <Tabs
-      initialRouteName="(home)/search"
+      initialRouteName="(home)"
       tabBar={(props) => <CustomTabBar {...props} />}
       screenOptions={{
         headerShown: false,
       }}
     >
       <Tabs.Screen
-        name="(home)/search"
+        name="(home)"
         options={{ title: t('tab_search', language) }}
       />
       <Tabs.Screen

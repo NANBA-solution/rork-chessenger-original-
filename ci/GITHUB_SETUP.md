@@ -59,6 +59,8 @@ GitHub → **Actions** → **iOS TestFlight Upload** → **Run workflow** → br
 | Cloud signing permission error | API キーを **Admin** に |
 | AuthKey invalid | Secret の `.p8` を再登録 |
 | Archive **exit 65** / `modulemap not found` / `no such module Expo` | ワークフローは **`.xcworkspace`** で Archive（修正済み）。再 Run workflow |
+| Archive **exit 65** / `maximum number of certificates` / `Choose a certificate to revoke` | [Certificates](https://developer.apple.com/account/resources/certificates/list) で **期限切れ・重複の Development / Distribution 証明書を失効**。Apple は種類ごとに上限あり。失効後 **Run workflow** を再実行 |
+| Archive **exit 65** / `No profiles for 'chessenger.app'` | 上記証明書整理後に再実行。`DEVELOPMENT_TEAM` が Team ID と一致しているか、API キーが **Admin** か確認 |
 | `git exit 128` / submodule `rork-chessenger` | 誤って追加したサブモジュールをリポジトリから削除（`.gitignore` 済み） |
 | Node.js 20 actions deprecated | `actions/checkout@v6` / `setup-node@v6`（Node 24 ランタイム）を使用 |
 | unable to cache dependencies | `expo` に `package-lock.json` が無いため npm キャッシュは無効（`package-manager-cache: false`） |
