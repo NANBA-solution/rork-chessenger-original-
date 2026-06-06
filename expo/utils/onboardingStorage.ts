@@ -1,36 +1,35 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-/** v4: 旧キーは移行しない（テスター・審査用にオンボードを再表示できるようにする） */
-export const ONBOARDING_COMPLETE_KEY = 'chess_onboarding_seen_v4';
+/** 永続化しない。アプリ再起動のたびにオンボードを出す（未登録ユーザー向け） */
+let guestOnboardingDoneThisSession = false;
+
 const LEGACY_ONBOARDING_KEYS = [
+  'chess_onboarding_seen_v4',
   'chess_onboarding_seen_v3',
   'chess_onboarding_seen_v2',
   'chess_onboarding_complete',
 ] as const;
 
+/** この起動セッションでオンボードを完了したか（永続化しない） */
 export async function isOnboardingComplete(): Promise<boolean> {
-  try {
-    const value = await AsyncStorage.getItem(ONBOARDING_COMPLETE_KEY);
-    return value === 'true';
-  } catch {
-    return false;
-  }
+  return guestOnboardingDoneThisSession;
 }
 
+/** オンボード完了（同一セッション内のみ有効。次回起動では再表示） */
 export async function completeOnboarding(): Promise<void> {
+  guestOnboardingDoneThisSession = true;
   try {
-    await AsyncStorage.setItem(ONBOARDING_COMPLETE_KEY, 'true');
     await AsyncStorage.multiRemove([...LEGACY_ONBOARDING_KEYS]);
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : String(e);
-    throw new Error(msg || 'Failed to save onboarding state');
+  } catch {
+    // ignore
   }
 }
 
-/** 開発・確認用: 初回フローをやり直す */
+/** ログアウト時など: オンボードを再度表示する */
 export async function resetOnboarding(): Promise<void> {
+  guestOnboardingDoneThisSession = false;
   try {
-    await AsyncStorage.multiRemove([ONBOARDING_COMPLETE_KEY, ...LEGACY_ONBOARDING_KEYS]);
+    await AsyncStorage.multiRemove([...LEGACY_ONBOARDING_KEYS]);
   } catch {
     // ignore
   }

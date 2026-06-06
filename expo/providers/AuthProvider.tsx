@@ -6,6 +6,7 @@ import { useRouter } from 'expo-router';
 import { supabase, supabaseNoAuth, clearStaleSession } from '@/utils/supabaseClient';
 import { AuthUser } from '@/types';
 import { registerForPushNotificationsAsync, savePushTokenToSupabase } from '@/utils/notifications';
+import { resetOnboarding } from '@/utils/onboardingStorage';
 
 const AUTH_KEY = 'chess_auth_user';
 const SESSION_STARTED_KEY = 'chess_session_started_at';
@@ -437,6 +438,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
     } catch (e) {
       console.log('Auth: Storage clear error', e);
     }
+    await resetOnboarding();
     setUser(null);
     console.log('Auth: Logged out and cleared all state');
   }, []);
