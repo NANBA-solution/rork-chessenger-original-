@@ -11,7 +11,7 @@ import {
   Platform,
   Alert,
 } from 'react-native';
-import { Stack, Redirect, useRouter, useLocalSearchParams } from 'expo-router';
+import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Image, type ImageSource } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -22,7 +22,7 @@ import { useTheme } from '@/providers/ThemeProvider';
 import { useChess } from '@/providers/ChessProvider';
 import { t } from '@/utils/translations';
 import { completeOnboarding } from '@/utils/onboardingStorage';
-import { SIGNUP_LOGIN_HREF } from '@/utils/authRouting';
+import { navigateToSignup } from '@/utils/authRouting';
 
 const { width: SW, height: SH } = Dimensions.get('window');
 const IMAGE_HEIGHT = Math.min(SH * 0.46, 380);
@@ -79,13 +79,15 @@ export default function OnboardingScreen() {
   const previewOnly = fromSettings || fromReview;
   const scrollRef = useRef<ScrollView>(null);
   const [page, setPage] = useState(0);
-  const [exitToSignup, setExitToSignup] = useState(false);
+  const [finishing, setFinishing] = useState(false);
   const styles = useMemo(() => createStyles(colors, insets.top), [colors, insets.top]);
 
   const isLast = page === SLIDES.length - 1;
 
   const finish = useCallback(async () => {
+    if (finishing) return;
     try {
+      setFinishing(true);
       if (Platform.OS !== 'web') {
         await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
       }
@@ -94,11 +96,12 @@ export default function OnboardingScreen() {
         return;
       }
       await completeOnboarding();
-      setExitToSignup(true);
+      navigateToSignup(router);
     } catch (e) {
+      setFinishing(false);
       Alert.alert(t('error', language), formatError(e));
     }
-  }, [language, previewOnly, router]);
+  }, [language, previewOnly, router, finishing]);
 
   const handleNext = useCallback(() => {
     if (isLast) {
@@ -109,8 +112,10 @@ export default function OnboardingScreen() {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     }
     const next = page + 1;
-    scrollRef.current?.scrollTo({ x: next * SW, animated: true });
     setPage(next);
+    requestAnimationFrame(() => {
+      scrollRef.current?.scrollTo({ x: next * SW, animated: true });
+    });
   }, [isLast, page, finish]);
 
   const handleScroll = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -126,12 +131,11 @@ export default function OnboardingScreen() {
   }, [toggleLanguage]);
 
   return (
-    <>
-      {exitToSignup ? <Redirect href={SIGNUP_LOGIN_HREF as any} /> : null}
-      <View style={styles.container} pointerEvents={exitToSignup ? 'none' : 'auto'}>
+    <View style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
 
       <LinearGradient
+        pointerEvents="none"
         colors={
           isDark
             ? [colors.background, colors.surface, colors.background]
@@ -155,7 +159,7 @@ export default function OnboardingScreen() {
             <Languages size={14} color={colors.textSecondary} />
             <Text style={styles.pillBtnText}>{language === 'ja' ? t('lang_switch_to_en', language) : t('lang_switch_to_ja', language)}</Text>
           </Pressable>
-          <Pressable onPress={finish} hitSlop={12} style={styles.pillBtn}>
+          <Pressable onPress={finish} disabled={finishing} hitSlop={12} style={styles.pillBtn}>
             <Text style={styles.skipText}>{t('onboarding_skip', language)}</Text>
           </Pressable>
         </View>
@@ -210,7 +214,7 @@ export default function OnboardingScreen() {
           ))}
         </View>
 
-        <Pressable onPress={handleNext} style={styles.ctaWrap}>
+        <Pressable onPress={handleNext} disabled={finishing} style={styles.ctaWrap}>
           <LinearGradient
             colors={[MINT, MINT_DARK, '#22C55E']}
             locations={[0, 0.45, 1]}
@@ -234,7 +238,6 @@ export default function OnboardingScreen() {
         )}
       </View>
     </View>
-    </>
   );
 }
 

@@ -32,5 +32,7 @@ export function shouldForceGuestRedirect(
   const expected = guestDestinationRoot(target);
   if (!expected) return false;
   const root = segments[0] ?? '';
+  // オンボード画面の遷移は OnboardingScreen 自身に任せる（ゲートと競合させない）
+  if (root === 'onboarding') return false;
   return root !== expected;
 }

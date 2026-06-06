@@ -9,3 +9,8 @@ export function isSignupMode(mode: string | string[] | undefined): boolean {
   if (Array.isArray(mode)) return mode.includes('signup');
   return false;
 }
+
+/** オンボード完了後の新規登録へ（Redirect より router.replace の方がネイティブで安定） */
+export function navigateToSignup(router: { replace: (href: string) => void }): void {
+  router.replace({ pathname: '/login', params: { mode: 'signup' } } as never);
+}
