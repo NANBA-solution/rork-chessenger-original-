@@ -75,6 +75,8 @@ export default function OnboardingScreen() {
   const insets = useSafeAreaInsets();
   const { from } = useLocalSearchParams<{ from?: string }>();
   const fromSettings = from === 'settings';
+  const fromReview = from === 'review';
+  const previewOnly = fromSettings || fromReview;
   const scrollRef = useRef<ScrollView>(null);
   const [page, setPage] = useState(0);
   const styles = useMemo(() => createStyles(colors, insets.top), [colors, insets.top]);
@@ -86,7 +88,7 @@ export default function OnboardingScreen() {
       if (Platform.OS !== 'web') {
         await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
       }
-      if (fromSettings) {
+      if (previewOnly) {
         router.back();
         return;
       }
@@ -95,7 +97,7 @@ export default function OnboardingScreen() {
     } catch (e) {
       Alert.alert(t('error', language), formatError(e));
     }
-  }, [language, fromSettings, router]);
+  }, [language, previewOnly, router]);
 
   const handleNext = useCallback(() => {
     if (isLast) {
@@ -215,7 +217,7 @@ export default function OnboardingScreen() {
           >
             <Text style={styles.ctaText}>
               {isLast
-                ? (fromSettings ? t('onboarding_confirm', language) : t('get_started', language))
+                ? (previewOnly ? t('onboarding_confirm', language) : t('get_started', language))
                 : t('onboarding_next', language)}
             </Text>
             <View style={styles.ctaIcon}>

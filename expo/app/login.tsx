@@ -460,6 +460,13 @@ export default function LoginScreen() {
             </Pressable>
           </View>
 
+          <Pressable
+            onPress={() => router.push({ pathname: '/onboarding', params: { from: 'review' } } as any)}
+            style={styles.onboardingLinkWrap}
+          >
+            <Text style={styles.onboardingLink}>{t('settings_onboarding_guide', language)}</Text>
+          </Pressable>
+
         </ScrollView>
       </KeyboardAvoidingView>
     </View>
@@ -600,5 +607,7 @@ function createStyles(colors: ThemeColors) {
     },
     switchLabel: { color: '#9CA3AF', fontSize: 14 },
     switchLink: { color: '#8B5CF6', fontWeight: '700', fontSize: 14 },
+    onboardingLinkWrap: { alignItems: 'center', marginTop: 20 },
+    onboardingLink: { color: '#6B7280', fontSize: 13, fontWeight: '600', textDecorationLine: 'underline' },
   });
 }
