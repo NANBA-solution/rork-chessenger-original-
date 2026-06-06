@@ -23,6 +23,7 @@ import { useChess } from '@/providers/ChessProvider';
 import { t } from '@/utils/translations';
 import { completeOnboarding } from '@/utils/onboardingStorage';
 import { SIGNUP_LOGIN_HREF } from '@/utils/authRouting';
+import { GuestBootRedirect } from '@/components/GuestBootRedirect';
 
 const { width: SW, height: SH } = Dimensions.get('window');
 const IMAGE_HEIGHT = Math.min(SH * 0.46, 380);
@@ -131,6 +132,7 @@ export default function OnboardingScreen() {
 
   return (
     <View style={styles.container}>
+      {!previewOnly ? <GuestBootRedirect expectedTarget="onboarding" /> : null}
       <Stack.Screen options={{ headerShown: false }} />
 
       <LinearGradient

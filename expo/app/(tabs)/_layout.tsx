@@ -16,7 +16,12 @@ import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useTheme } from '@/providers/ThemeProvider';
 import { useChess } from '@/providers/ChessProvider';
 import { useAuth } from '@/providers/AuthProvider';
-import { guestBootHref, resolveGuestBootTarget, type GuestBootTarget } from '@/utils/onboardingRouting';
+import {
+  guestBootHref,
+  resolveGuestBootTarget,
+  shouldForceGuestRedirect,
+  type GuestBootTarget,
+} from '@/utils/onboardingRouting';
 import { ThemeColors } from '@/constants/colors';
 import { t } from '@/utils/translations';
 
@@ -291,7 +296,7 @@ export default function TabLayout() {
   const auth = useAuth();
   const isLoggedIn = auth?.isLoggedIn ?? false;
   const isLoading = auth?.isLoading ?? true;
-  const [guestTarget, setGuestTarget] = useState<GuestBootTarget | 'allowed'>('allowed');
+  const [guestTarget, setGuestTarget] = useState<GuestBootTarget | 'allowed'>('loading');
 
   useEffect(() => {
     if (isLoading) return;
@@ -321,7 +326,7 @@ export default function TabLayout() {
     );
   }
 
-  if (!isLoggedIn && guestTarget !== 'allowed') {
+  if (!isLoggedIn && guestTarget !== 'allowed' && shouldForceGuestRedirect(guestTarget, ['(tabs)'])) {
     const href = guestBootHref(guestTarget);
     if (href) return <Redirect href={href as any} />;
   }

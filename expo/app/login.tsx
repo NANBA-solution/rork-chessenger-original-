@@ -25,7 +25,7 @@ import { useChess } from '@/providers/ChessProvider';
 import { t } from '@/utils/translations';
 import { primeAudioForApp, playLoginSuccessSound } from '@/utils/messageNotificationSound';
 import { isSignupMode } from '@/utils/authRouting';
-import { isOnboardingComplete } from '@/utils/onboardingStorage';
+import { GuestBootRedirect } from '@/components/GuestBootRedirect';
 
 const { width: SW } = Dimensions.get('window');
 
@@ -246,19 +246,6 @@ export default function LoginScreen() {
     setIsLogin(!signupMode);
   }, [signupMode]);
 
-  // オンボーディング未完了なら登録画面に直行させず、必ずオンボード → 登録の順にする
-  useEffect(() => {
-    let cancelled = false;
-    void (async () => {
-      const done = await isOnboardingComplete();
-      if (cancelled || done) return;
-      router.replace('/onboarding');
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [router]);
-
   useEffect(() => {
     Animated.sequence([
       Animated.delay(600),
@@ -317,6 +304,7 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.container}>
+      <GuestBootRedirect expectedTarget="signup" />
       <Stack.Screen options={{ headerShown: false }} />
 
       {/* 背景グラデーション */}

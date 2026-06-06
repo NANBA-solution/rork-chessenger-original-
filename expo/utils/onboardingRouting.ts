@@ -17,18 +17,20 @@ export function guestBootHref(target: GuestBootTarget): string | null {
   return null;
 }
 
-const GATE_EXEMPT_ROOTS = new Set([
-  'onboarding',
-  'login',
-  'index',
-  'terms-of-service',
-  'privacy-policy',
-  'help-support',
-]);
+function guestDestinationRoot(target: GuestBootTarget): string | null {
+  if (target === 'onboarding') return 'onboarding';
+  if (target === 'signup') return 'login';
+  return null;
+}
 
-/** 未ログイン時にオンボード/登録へ誘導しない画面 */
-export function isOnboardingGateExempt(segments: string[]): boolean {
-  const root = segments[0];
-  if (!root) return true;
-  return GATE_EXEMPT_ROOTS.has(root);
+/** 未ログイン時、現在の画面が本来いるべき起動先と違うか */
+export function shouldForceGuestRedirect(
+  target: GuestBootTarget,
+  segments: string[],
+): boolean {
+  if (target === 'loading' || target === 'home') return false;
+  const expected = guestDestinationRoot(target);
+  if (!expected) return false;
+  const root = segments[0] ?? '';
+  return root !== expected;
 }

@@ -32,6 +32,10 @@ import { WebHydrationGate } from "@/components/WebHydrationGate";
 // スプラッシュ画面を自動で隠さないように設定（未処理 reject だと Rork で Error message: {} になる）
 void SplashScreen.preventAutoHideAsync().catch(() => {});
 
+export const unstable_settings = {
+  initialRouteName: 'index',
+};
+
 const queryClient = new QueryClient();
 
 function RootLayoutNav() {

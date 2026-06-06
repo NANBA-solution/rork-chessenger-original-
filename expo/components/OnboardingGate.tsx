@@ -3,13 +3,13 @@ import { Redirect, useRootNavigationState, useSegments } from 'expo-router';
 import { useAuth } from '@/providers/AuthProvider';
 import {
   guestBootHref,
-  isOnboardingGateExempt,
   resolveGuestBootTarget,
+  shouldForceGuestRedirect,
   type GuestBootTarget,
 } from '@/utils/onboardingRouting';
 
 /**
- * ディープリンクやタブ直開きでも未登録ユーザーをオンボードへ戻すグローバルガード。
+ * タブ直開き・ディープリンクでも未登録ユーザーをオンボード/登録へ戻す。
  */
 export function OnboardingGate({ enabled }: { enabled: boolean }) {
   const auth = useAuth();
@@ -17,16 +17,18 @@ export function OnboardingGate({ enabled }: { enabled: boolean }) {
   const rootState = useRootNavigationState();
   const isLoading = auth?.isLoading ?? true;
   const isLoggedIn = auth?.isLoggedIn ?? false;
-  const [target, setTarget] = useState<GuestBootTarget | 'pass'>('pass');
+  const [target, setTarget] = useState<GuestBootTarget>('loading');
 
   useEffect(() => {
     if (!enabled || !rootState?.key || isLoading) return;
-    if (isLoggedIn || isOnboardingGateExempt(segments)) {
-      setTarget('pass');
+
+    if (isLoggedIn) {
+      setTarget('home');
       return;
     }
 
     let cancelled = false;
+    setTarget('loading');
     void (async () => {
       const next = await resolveGuestBootTarget(false);
       if (!cancelled) setTarget(next);
@@ -35,9 +37,13 @@ export function OnboardingGate({ enabled }: { enabled: boolean }) {
     return () => {
       cancelled = true;
     };
-  }, [enabled, rootState?.key, isLoading, isLoggedIn, segments]);
+  }, [enabled, rootState?.key, isLoading, isLoggedIn]);
 
-  if (target === 'pass' || target === 'loading' || target === 'home') {
+  if (!enabled || isLoading || target === 'loading' || target === 'home') {
+    return null;
+  }
+
+  if (!shouldForceGuestRedirect(target, segments)) {
     return null;
   }
 

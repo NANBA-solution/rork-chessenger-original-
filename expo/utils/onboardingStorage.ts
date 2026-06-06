@@ -1,8 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-/** v3: 旧キーは移行しない（テスター・審査用にオンボードを再表示できるようにする） */
-export const ONBOARDING_COMPLETE_KEY = 'chess_onboarding_seen_v3';
-const LEGACY_ONBOARDING_KEYS = ['chess_onboarding_seen_v2', 'chess_onboarding_complete'] as const;
+/** v4: 旧キーは移行しない（テスター・審査用にオンボードを再表示できるようにする） */
+export const ONBOARDING_COMPLETE_KEY = 'chess_onboarding_seen_v4';
+const LEGACY_ONBOARDING_KEYS = [
+  'chess_onboarding_seen_v3',
+  'chess_onboarding_seen_v2',
+  'chess_onboarding_complete',
+] as const;
 
 export async function isOnboardingComplete(): Promise<boolean> {
   try {
