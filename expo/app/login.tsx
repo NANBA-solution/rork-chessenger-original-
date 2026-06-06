@@ -14,7 +14,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { Image } from 'expo-image';
-import { Stack, useRouter } from 'expo-router';
+import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { Mail, Lock, User, ArrowRight, Languages, Check } from 'lucide-react-native';
@@ -226,7 +226,8 @@ export default function LoginScreen() {
   const { login, register } = useAuth();
   const { language, toggleLanguage } = useChess();
   const router = useRouter();
-  const [isLogin, setIsLogin] = useState<boolean>(true);
+  const { mode } = useLocalSearchParams<{ mode?: string }>();
+  const [isLogin, setIsLogin] = useState<boolean>(mode !== 'signup');
   const [name, setName] = useState<string>('');
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');

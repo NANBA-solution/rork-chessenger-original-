@@ -90,7 +90,7 @@ export default function OnboardingScreen() {
         return;
       }
       await completeOnboarding();
-      router.replace('/(tabs)/(home)/search');
+      router.replace({ pathname: '/login', params: { mode: 'signup' } } as any);
     } catch (e) {
       Alert.alert(t('error', language), formatError(e));
     }
