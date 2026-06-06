@@ -16,6 +16,7 @@ import { useTheme } from '@/providers/ThemeProvider';
 import { useChess } from '@/providers/ChessProvider';
 import { useAuth } from '@/providers/AuthProvider';
 import { isOnboardingComplete } from '@/utils/onboardingStorage';
+import { SIGNUP_LOGIN_HREF } from '@/utils/authRouting';
 import { ThemeColors } from '@/constants/colors';
 import { t } from '@/utils/translations';
 
@@ -304,7 +305,7 @@ export default function TabLayout() {
         return;
       }
       if (!isLoggedIn) {
-        router.replace({ pathname: '/login', params: { mode: 'signup' } } as any);
+        router.replace(SIGNUP_LOGIN_HREF as any);
       }
     })();
 

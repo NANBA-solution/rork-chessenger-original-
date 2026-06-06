@@ -24,6 +24,8 @@ import { useAuth } from '@/providers/AuthProvider';
 import { useChess } from '@/providers/ChessProvider';
 import { t } from '@/utils/translations';
 import { primeAudioForApp, playLoginSuccessSound } from '@/utils/messageNotificationSound';
+import { isSignupMode } from '@/utils/authRouting';
+import { isOnboardingComplete } from '@/utils/onboardingStorage';
 
 const { width: SW } = Dimensions.get('window');
 
@@ -226,8 +228,9 @@ export default function LoginScreen() {
   const { login, register } = useAuth();
   const { language, toggleLanguage } = useChess();
   const router = useRouter();
-  const { mode } = useLocalSearchParams<{ mode?: string }>();
-  const [isLogin, setIsLogin] = useState<boolean>(mode !== 'signup');
+  const { mode } = useLocalSearchParams<{ mode?: string | string[] }>();
+  const signupMode = isSignupMode(mode);
+  const [isLogin, setIsLogin] = useState<boolean>(!signupMode);
   const [name, setName] = useState<string>('');
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
@@ -240,6 +243,23 @@ export default function LoginScreen() {
   const buttonScale = useRef(new Animated.Value(1)).current;
   const formOpacity = useRef(new Animated.Value(0)).current;
   const formY = useRef(new Animated.Value(24)).current;
+
+  useEffect(() => {
+    setIsLogin(!signupMode);
+  }, [signupMode]);
+
+  // オンボーディング未完了なら登録画面に直行させず、必ずオンボード → 登録の順にする
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      const done = await isOnboardingComplete();
+      if (cancelled || done) return;
+      router.replace('/onboarding');
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [router]);
 
   useEffect(() => {
     Animated.sequence([

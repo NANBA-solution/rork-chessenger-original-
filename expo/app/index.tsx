@@ -2,10 +2,11 @@ import React, { useEffect } from 'react';
 import { View, ActivityIndicator, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { isOnboardingComplete } from '@/utils/onboardingStorage';
+import { SIGNUP_LOGIN_HREF } from '@/utils/authRouting';
 import { useAuth } from '@/providers/AuthProvider';
 
 /**
- * 初回起動の振り分け。Redirect ではなく replace で hydration 不一致を避ける。
+ * 起動振り分け: 未オンボード → オンボード → 新規登録 / 登録済み → ホーム
  */
 export default function AppIndex() {
   const router = useRouter();
@@ -24,7 +25,7 @@ export default function AppIndex() {
         if (!done) {
           router.replace('/onboarding');
         } else if (!isLoggedIn) {
-          router.replace({ pathname: '/login', params: { mode: 'signup' } } as any);
+          router.replace(SIGNUP_LOGIN_HREF as any);
         } else {
           router.replace('/(tabs)/(home)/search');
         }

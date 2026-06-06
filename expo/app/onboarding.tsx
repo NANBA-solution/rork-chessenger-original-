@@ -22,6 +22,7 @@ import { useTheme } from '@/providers/ThemeProvider';
 import { useChess } from '@/providers/ChessProvider';
 import { t } from '@/utils/translations';
 import { completeOnboarding } from '@/utils/onboardingStorage';
+import { SIGNUP_LOGIN_HREF } from '@/utils/authRouting';
 
 const { width: SW, height: SH } = Dimensions.get('window');
 const IMAGE_HEIGHT = Math.min(SH * 0.46, 380);
@@ -90,7 +91,7 @@ export default function OnboardingScreen() {
         return;
       }
       await completeOnboarding();
-      router.replace({ pathname: '/login', params: { mode: 'signup' } } as any);
+      router.replace(SIGNUP_LOGIN_HREF as any);
     } catch (e) {
       Alert.alert(t('error', language), formatError(e));
     }
