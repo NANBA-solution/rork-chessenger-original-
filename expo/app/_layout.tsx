@@ -5,6 +5,15 @@ import React, { useEffect, useState, useCallback } from "react";
 import { LogBox, Platform, View, StatusBar } from "react-native";
 import * as Linking from "expo-linking";
 import { extractPlayerIdFromUrl } from "@/utils/deepLinks";
+import '@/rork-error-shim';
+import { installRorkWebErrorNormalize } from '@/utils/rorkWebErrorNormalize';
+import { setupNotificationHandler } from '@/utils/notifications';
+
+if (Platform.OS === 'web') {
+  installRorkWebErrorNormalize();
+}
+setupNotificationHandler();
+
 LogBox.ignoreLogs([
   "[SafeImage] onError",
   "Image data is nil",
@@ -96,12 +105,6 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
-    if (Platform.OS === 'web') {
-      void import('@/rork-error-shim');
-      void import('@/utils/rorkWebErrorNormalize').then((m) => m.installRorkWebErrorNormalize());
-    }
-    void import('@/utils/notifications').then((m) => m.setupNotificationHandler());
-
     // ネイティブスプラッシュを早めに隠してカスタムアニメーションを表示
     const t = setTimeout(() => {
       void SplashScreen.hideAsync().catch(() => {});
