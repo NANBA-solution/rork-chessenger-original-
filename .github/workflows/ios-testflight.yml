@@ -128,7 +128,6 @@ jobs:
           MARKETING_VERSION="$(node -p "require('./app.json').expo.version")"
           ARCHIVE_PATH="$RUNNER_TEMP/chessenger.xcarchive"
           # CocoaPods 経由の Expo モジュールは .xcworkspace 必須（.xcodeproj だと modulemap not found → exit 65）
-          # Release Archive は Distribution 証明書を使う（Development だと CI 毎に証明書が増え上限に達しやすい）
           xcodebuild archive \
             -workspace "$WORKSPACE_PATH" \
             -scheme "$SCHEME" \
@@ -139,7 +138,6 @@ jobs:
             MARKETING_VERSION="$MARKETING_VERSION" \
             CURRENT_PROJECT_VERSION="${{ github.run_number }}" \
             CODE_SIGN_STYLE=Automatic \
-            CODE_SIGN_IDENTITY="Apple Distribution" \
             -allowProvisioningUpdates \
             -authenticationKeyPath "$AUTH_KEY_PATH" \
             -authenticationKeyID "$APPSTORE_API_KEY_ID_CLEAN" \
