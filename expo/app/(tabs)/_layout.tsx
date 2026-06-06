@@ -287,6 +287,31 @@ const tabStyles = StyleSheet.create({
 export default function TabLayout() {
   const { colors } = useTheme();
   const { language } = useChess();
+  const auth = useAuth();
+  const isLoggedIn = auth?.isLoggedIn ?? false;
+  const isLoading = auth?.isLoading ?? true;
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isLoading) return;
+
+    let cancelled = false;
+    void (async () => {
+      const done = await isOnboardingComplete();
+      if (cancelled) return;
+      if (!done) {
+        router.replace('/onboarding');
+        return;
+      }
+      if (!isLoggedIn) {
+        router.replace({ pathname: '/login', params: { mode: 'signup' } } as any);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isLoading, isLoggedIn, router]);
 
   return (
     <Tabs
