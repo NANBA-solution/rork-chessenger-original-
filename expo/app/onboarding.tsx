@@ -100,10 +100,6 @@ export default function OnboardingScreen() {
     }
   }, [language, previewOnly, router]);
 
-  if (exitToSignup) {
-    return <Redirect href={SIGNUP_LOGIN_HREF as any} />;
-  }
-
   const handleNext = useCallback(() => {
     if (isLast) {
       finish();
@@ -128,6 +124,10 @@ export default function OnboardingScreen() {
     }
     toggleLanguage();
   }, [toggleLanguage]);
+
+  if (exitToSignup) {
+    return <Redirect href={SIGNUP_LOGIN_HREF as any} />;
+  }
 
   return (
     <View style={styles.container}>
