@@ -25,6 +25,25 @@ import {
 import { ThemeColors } from '@/constants/colors';
 import { t } from '@/utils/translations';
 
+/** タブ表示順（ファイル名のアルファベット順ではなくこの順で固定） */
+const TAB_ORDER = ['(home)', 'timeline', 'messages', 'matches', 'profile'] as const;
+
+type TabKey = (typeof TAB_ORDER)[number];
+
+function normalizeTabKey(routeName: string): TabKey {
+  if (routeName.startsWith('(home)')) return '(home)';
+  if (TAB_ORDER.includes(routeName as TabKey)) return routeName as TabKey;
+  return '(home)';
+}
+
+function sortTabRoutes<T extends { name: string }>(routes: T[]): T[] {
+  return [...routes].sort((a, b) => {
+    const ai = TAB_ORDER.indexOf(normalizeTabKey(a.name));
+    const bi = TAB_ORDER.indexOf(normalizeTabKey(b.name));
+    return ai - bi;
+  });
+}
+
 // ─── 個別タブアイテム ────────────────────────────────────────────────────────
 
 interface TabItemProps {
@@ -134,19 +153,23 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
 
   const matchBadge = pendingIncoming.length;
 
-  const badges: Record<string, number> = {
+  const badges: Record<TabKey, number> = {
+    '(home)': 0,
     timeline: unreadTimelineNotificationCount,
     messages: totalUnreadMessageCount,
     matches: matchBadge,
+    profile: 0,
   };
 
-  const icons: Record<string, (c: string, s: number) => React.ReactNode> = {
+  const icons: Record<TabKey, (c: string, s: number) => React.ReactNode> = {
     '(home)': (c, s) => <Search size={s} color={c} />,
     timeline: (c, s) => <Newspaper size={s} color={c} />,
     messages: (c, s) => <MessageCircle size={s} color={c} />,
     matches: (c, s) => <Swords size={s} color={c} />,
     profile: (c, s) => <User size={s} color={c} />,
   };
+
+  const orderedRoutes = sortTabRoutes(state.routes);
 
   return (
     <View style={[tabStyles.container, { paddingBottom: Math.max(insets.bottom, 8) }]}>
@@ -170,9 +193,11 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
             tint={isDark ? 'dark' : 'light'}
             style={[tabStyles.bar, { borderColor: colors.tabBarBorder }]}
           >
-            {state.routes.map((route, index) => {
+            {orderedRoutes.map((route) => {
               const { options } = descriptors[route.key];
-              const isFocused = state.index === index;
+              const tabKey = normalizeTabKey(route.name);
+              const routeIndex = state.routes.findIndex((r) => r.key === route.key);
+              const isFocused = state.index === routeIndex;
 
               const onPress = () => {
                 const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
@@ -186,9 +211,9 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
                   isFocused={isFocused}
                   onPress={onPress}
                   onLongPress={onLongPress}
-                  icon={icons[route.name] ?? ((c, s) => <Search size={s} color={c} />)}
+                  icon={icons[tabKey]}
                   label={options.title ?? t('tab_search', language)}
-                  badge={badges[route.name] ?? 0}
+                  badge={badges[tabKey]}
                   colors={colors}
                 />
               );
@@ -196,9 +221,11 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
           </BlurView>
         ) : (
           <View style={[tabStyles.bar, { backgroundColor: colors.tabBar, borderColor: colors.tabBarBorder }]}>
-            {state.routes.map((route, index) => {
+            {orderedRoutes.map((route) => {
               const { options } = descriptors[route.key];
-              const isFocused = state.index === index;
+              const tabKey = normalizeTabKey(route.name);
+              const routeIndex = state.routes.findIndex((r) => r.key === route.key);
+              const isFocused = state.index === routeIndex;
 
               const onPress = () => {
                 const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
@@ -212,9 +239,9 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
                   isFocused={isFocused}
                   onPress={onPress}
                   onLongPress={onLongPress}
-                  icon={icons[route.name] ?? ((c, s) => <Search size={s} color={c} />)}
+                  icon={icons[tabKey]}
                   label={options.title ?? t('tab_search', language)}
-                  badge={badges[route.name] ?? 0}
+                  badge={badges[tabKey]}
                   colors={colors}
                 />
               );
@@ -333,6 +360,7 @@ export default function TabLayout() {
 
   return (
     <Tabs
+      initialRouteName="(home)/search"
       tabBar={(props) => <CustomTabBar {...props} />}
       screenOptions={{
         headerShown: false,
