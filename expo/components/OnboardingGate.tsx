@@ -18,10 +18,15 @@ export function OnboardingGate({ enabled }: { enabled: boolean }) {
   const rootState = useRootNavigationState();
   const isLoading = auth?.isLoading ?? true;
   const isLoggedIn = auth?.isLoggedIn ?? false;
-  const hasSupabaseSession = useSupabaseSession();
+  const { ready: sessionReady, hasSession: hasSupabaseSession } = useSupabaseSession();
   useOnboardingSessionVersion();
 
   if (!enabled || !rootState?.key || isLoading || isLoggedIn || hasSupabaseSession) {
+    return null;
+  }
+
+  // セッション確認前に (tabs) 等からログインへ戻さない
+  if (!sessionReady) {
     return null;
   }
 

@@ -324,12 +324,12 @@ export default function TabLayout() {
   const auth = useAuth();
   const isLoggedIn = auth?.isLoggedIn ?? false;
   const isLoading = auth?.isLoading ?? true;
-  const hasSupabaseSession = useSupabaseSession();
+  const { ready: sessionReady, hasSession: hasSupabaseSession } = useSupabaseSession();
   const isAuthenticated = isLoggedIn || hasSupabaseSession;
   useOnboardingSessionVersion();
   const guestTarget = isAuthenticated ? 'allowed' : resolveGuestBootTargetSync(false);
 
-  if (!isAuthenticated && isLoading) {
+  if (!isAuthenticated && (isLoading || !sessionReady)) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
         <ActivityIndicator size="large" color="#7C3AED" />

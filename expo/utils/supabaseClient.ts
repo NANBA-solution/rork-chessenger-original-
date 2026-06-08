@@ -5,6 +5,10 @@ import { Platform } from 'react-native';
 const SUPABASE_URL = (process.env.EXPO_PUBLIC_SUPABASE_URL ?? '').trim();
 const SUPABASE_ANON_KEY = (process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '').trim();
 
+export function isSupabaseConfigured(): boolean {
+  return !!SUPABASE_URL && !!SUPABASE_ANON_KEY;
+}
+
 function ensureSupabaseConfig(): void {
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
     const missing = [!SUPABASE_URL && 'EXPO_PUBLIC_SUPABASE_URL', !SUPABASE_ANON_KEY && 'EXPO_PUBLIC_SUPABASE_ANON_KEY']

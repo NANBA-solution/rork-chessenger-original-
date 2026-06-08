@@ -22,7 +22,7 @@ export function GuestBootRedirect({ expectedTarget }: Props) {
   const auth = useAuth();
   const isLoading = auth?.isLoading ?? true;
   const isLoggedIn = auth?.isLoggedIn ?? false;
-  const hasSupabaseSession = useSupabaseSession();
+  const { ready: sessionReady, hasSession: hasSupabaseSession } = useSupabaseSession();
   const isAuthenticated = isLoggedIn || hasSupabaseSession;
   useOnboardingSessionVersion();
   const [authReady, setAuthReady] = useState(!isLoading);
@@ -31,7 +31,7 @@ export function GuestBootRedirect({ expectedTarget }: Props) {
     if (!isLoading) setAuthReady(true);
   }, [isLoading]);
 
-  if (!authReady || isLoading) {
+  if (!authReady || isLoading || (!isAuthenticated && !sessionReady)) {
     if (expectedTarget) return null;
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>

@@ -26,6 +26,8 @@ import { t } from '@/utils/translations';
 import { primeAudioForApp, playLoginSuccessSound } from '@/utils/messageNotificationSound';
 import { isSignupMode } from '@/utils/authRouting';
 import { GuestBootRedirect } from '@/components/GuestBootRedirect';
+import { useSupabaseSession } from '@/hooks/useSupabaseSession';
+import { isSupabaseConfigured } from '@/utils/supabaseClient';
 
 const { width: SW } = Dimensions.get('window');
 
@@ -226,9 +228,12 @@ const hero = StyleSheet.create({
 export default function LoginScreen() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { login, register } = useAuth();
+  const { login, register, isLoggedIn } = useAuth();
+  const { hasSession: hasSupabaseSession } = useSupabaseSession();
   const { language, toggleLanguage } = useChess();
   const router = useRouter();
+  const [authPending, setAuthPending] = useState(false);
+  const supabaseConfigured = isSupabaseConfigured();
   const { mode } = useLocalSearchParams<{ mode?: string | string[] }>();
   const signupMode = isSignupMode(mode);
   const [isLogin, setIsLogin] = useState<boolean>(!signupMode);
@@ -256,6 +261,12 @@ export default function LoginScreen() {
     ]).start();
   }, []);
 
+  useEffect(() => {
+    if (!authPending || (!isLoggedIn && !hasSupabaseSession)) return;
+    setAuthPending(false);
+    router.replace('/(tabs)/(home)/search' as any);
+  }, [authPending, isLoggedIn, hasSupabaseSession, router]);
+
   const handleSubmit = useCallback(async () => {
     if (loading) return;
     await primeAudioForApp().catch(() => {});
@@ -272,7 +283,7 @@ export default function LoginScreen() {
         const result = await login(email, password);
         if (result.success) {
           playLoginSuccessSound().catch(() => {});
-          // 遷移は GuestBootRedirect に任せる（即 router.replace だと OnboardingGate と競合して戻される）
+          setAuthPending(true);
         } else {
           const desc =
             result.errorKind === 'network'
@@ -294,6 +305,7 @@ export default function LoginScreen() {
             );
           } else {
             playLoginSuccessSound().catch(() => {});
+            setAuthPending(true);
           }
         } else {
           Alert.alert(
@@ -305,11 +317,22 @@ export default function LoginScreen() {
     } finally {
       setLoading(false);
     }
-  }, [isLogin, name, email, password, loading, login, register, router, language]);
+  }, [isLogin, name, email, password, loading, login, register, language]);
 
   return (
     <View style={styles.container}>
       <GuestBootRedirect expectedTarget="signup" />
+      {!supabaseConfigured ? (
+        <View style={styles.configErrorBanner}>
+          <Text style={styles.configErrorText}>{t('supabase_config_missing', language)}</Text>
+        </View>
+      ) : null}
+      {authPending ? (
+        <View style={styles.redirectOverlay}>
+          <ActivityIndicator size="large" color="#7C3AED" />
+          <Text style={styles.redirectText}>{t('auth_redirecting', language)}</Text>
+        </View>
+      ) : null}
       <Stack.Screen options={{ headerShown: false }} />
 
       {/* 背景グラデーション */}
@@ -608,5 +631,27 @@ function createStyles(colors: ThemeColors) {
     switchLink: { color: '#8B5CF6', fontWeight: '700', fontSize: 14 },
     onboardingLinkWrap: { alignItems: 'center', marginTop: 20 },
     onboardingLink: { color: '#6B7280', fontSize: 13, fontWeight: '600', textDecorationLine: 'underline' },
+    configErrorBanner: {
+      position: 'absolute',
+      top: 52,
+      left: 16,
+      right: 16,
+      zIndex: 20,
+      backgroundColor: '#FEE2E2',
+      borderRadius: 12,
+      padding: 12,
+      borderWidth: 1,
+      borderColor: '#FCA5A5',
+    },
+    configErrorText: { color: '#991B1B', fontSize: 12, fontWeight: '600', textAlign: 'center' },
+    redirectOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      zIndex: 30,
+      backgroundColor: 'rgba(255,255,255,0.82)',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 12,
+    },
+    redirectText: { color: '#4B5563', fontSize: 14, fontWeight: '600' },
   });
 }
