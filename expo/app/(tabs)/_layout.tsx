@@ -17,6 +17,7 @@ import { useTheme } from '@/providers/ThemeProvider';
 import { useChess } from '@/providers/ChessProvider';
 import { useAuth } from '@/providers/AuthProvider';
 import { useOnboardingSessionVersion } from '@/hooks/useOnboardingSession';
+import { useIsAuthenticated } from '@/hooks/useIsAuthenticated';
 import { useSupabaseSession } from '@/hooks/useSupabaseSession';
 import {
   guestBootHref,
@@ -322,10 +323,9 @@ export default function TabLayout() {
   const { colors } = useTheme();
   const { language } = useChess();
   const auth = useAuth();
-  const isLoggedIn = auth?.isLoggedIn ?? false;
   const isLoading = auth?.isLoading ?? true;
-  const { ready: sessionReady, hasSession: hasSupabaseSession } = useSupabaseSession();
-  const isAuthenticated = isLoggedIn || hasSupabaseSession;
+  const isAuthenticated = useIsAuthenticated();
+  const { ready: sessionReady } = useSupabaseSession();
   useOnboardingSessionVersion();
   const guestTarget = isAuthenticated ? 'allowed' : resolveGuestBootTargetSync(false);
 

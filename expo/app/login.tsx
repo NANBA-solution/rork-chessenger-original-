@@ -26,7 +26,7 @@ import { t } from '@/utils/translations';
 import { primeAudioForApp, playLoginSuccessSound } from '@/utils/messageNotificationSound';
 import { HOME_HREF, isSignupMode } from '@/utils/authRouting';
 import { GuestBootRedirect } from '@/components/GuestBootRedirect';
-import { useSupabaseSession } from '@/hooks/useSupabaseSession';
+import { useIsAuthenticated } from '@/hooks/useIsAuthenticated';
 import { getSupabaseHostForDebug, isSupabaseConfigured } from '@/utils/supabaseClient';
 
 const { width: SW } = Dimensions.get('window');
@@ -228,8 +228,8 @@ const hero = StyleSheet.create({
 export default function LoginScreen() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { login, register, isLoggedIn } = useAuth();
-  const { hasSession: hasSupabaseSession } = useSupabaseSession();
+  const { login, register } = useAuth();
+  const isAuthenticated = useIsAuthenticated();
   const { language, toggleLanguage } = useChess();
   const router = useRouter();
   const [authPending, setAuthPending] = useState(false);
@@ -262,10 +262,10 @@ export default function LoginScreen() {
   }, []);
 
   useEffect(() => {
-    if (!authPending || (!isLoggedIn && !hasSupabaseSession)) return;
+    if (!authPending || !isAuthenticated) return;
     setAuthPending(false);
     router.replace(HOME_HREF as any);
-  }, [authPending, isLoggedIn, hasSupabaseSession, router]);
+  }, [authPending, isAuthenticated, router]);
 
   const handleSubmit = useCallback(async () => {
     if (loading) return;

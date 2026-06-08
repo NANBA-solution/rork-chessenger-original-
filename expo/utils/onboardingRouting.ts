@@ -4,13 +4,13 @@ import { HOME_HREF, LOGIN_HREF, ONBOARDING_HREF } from '@/utils/authRouting';
 export type GuestBootTarget = 'loading' | 'onboarding' | 'signup' | 'home';
 
 /** 認証状態に応じた起動先（ログイン済みはホーム、未登録は毎回オンボード→同一セッション内のみ登録） */
-export function resolveGuestBootTargetSync(isLoggedIn: boolean): GuestBootTarget {
-  if (isLoggedIn) return 'home';
+export function resolveGuestBootTargetSync(isAuthenticated: boolean): GuestBootTarget {
+  if (isAuthenticated) return 'home';
   return isOnboardingCompleteSync() ? 'signup' : 'onboarding';
 }
 
-export async function resolveGuestBootTarget(isLoggedIn: boolean): Promise<GuestBootTarget> {
-  if (isLoggedIn) return 'home';
+export async function resolveGuestBootTarget(isAuthenticated: boolean): Promise<GuestBootTarget> {
+  if (isAuthenticated) return 'home';
   const done = await isOnboardingComplete();
   return done ? 'signup' : 'onboarding';
 }
@@ -18,6 +18,7 @@ export async function resolveGuestBootTarget(isLoggedIn: boolean): Promise<Guest
 export function guestBootHref(target: GuestBootTarget): string | null {
   if (target === 'home') return HOME_HREF;
   if (target === 'onboarding') return ONBOARDING_HREF;
+  // 'signup' = オンボード完了後の認証画面（ログインがデフォルト）
   if (target === 'signup') return LOGIN_HREF;
   return null;
 }

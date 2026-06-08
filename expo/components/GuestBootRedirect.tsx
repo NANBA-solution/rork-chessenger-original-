@@ -3,6 +3,7 @@ import { View, ActivityIndicator } from 'react-native';
 import { Redirect } from 'expo-router';
 import { useAuth } from '@/providers/AuthProvider';
 import { useOnboardingSessionVersion } from '@/hooks/useOnboardingSession';
+import { useIsAuthenticated } from '@/hooks/useIsAuthenticated';
 import { useSupabaseSession } from '@/hooks/useSupabaseSession';
 import { HOME_HREF } from '@/utils/authRouting';
 import {
@@ -22,9 +23,8 @@ type Props = {
 export function GuestBootRedirect({ expectedTarget }: Props) {
   const auth = useAuth();
   const isLoading = auth?.isLoading ?? true;
-  const isLoggedIn = auth?.isLoggedIn ?? false;
-  const { ready: sessionReady, hasSession: hasSupabaseSession } = useSupabaseSession();
-  const isAuthenticated = isLoggedIn || hasSupabaseSession;
+  const isAuthenticated = useIsAuthenticated();
+  const { ready: sessionReady } = useSupabaseSession();
   useOnboardingSessionVersion();
   const [authReady, setAuthReady] = useState(!isLoading);
 

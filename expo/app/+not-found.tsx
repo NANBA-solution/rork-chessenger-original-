@@ -4,26 +4,26 @@ import { StyleSheet, Text, View } from "react-native";
 import { ThemeColors } from "@/constants/colors";
 import { useTheme } from "@/providers/ThemeProvider";
 import { useChess } from "@/providers/ChessProvider";
-import { useAuth } from "@/providers/AuthProvider";
 import { BackNavButton } from "@/components/BackNavButton";
+import { useIsAuthenticated } from "@/hooks/useIsAuthenticated";
 import { HOME_HREF } from "@/utils/authRouting";
 import { t } from "@/utils/translations";
 
 export default function NotFoundScreen() {
   const { colors } = useTheme();
   const { language } = useChess();
-  const { isLoggedIn } = useAuth();
+  const isAuthenticated = useIsAuthenticated();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
   const title = t('page_not_found', language);
   const backLabel = t('back_to_home', language);
-  const homeHref = isLoggedIn ? HOME_HREF : '/';
+  const homeHref = isAuthenticated ? HOME_HREF : '/';
 
   useEffect(() => {
-    if (isLoggedIn) {
+    if (isAuthenticated) {
       router.replace(HOME_HREF as never);
     }
-  }, [isLoggedIn, router]);
+  }, [isAuthenticated, router]);
 
   return (
     <>

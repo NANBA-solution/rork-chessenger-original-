@@ -2,6 +2,7 @@ import React from 'react';
 import { Redirect, useRootNavigationState, useSegments } from 'expo-router';
 import { useAuth } from '@/providers/AuthProvider';
 import { useOnboardingSessionVersion } from '@/hooks/useOnboardingSession';
+import { useIsAuthenticated } from '@/hooks/useIsAuthenticated';
 import { useSupabaseSession } from '@/hooks/useSupabaseSession';
 import {
   guestBootHref,
@@ -17,11 +18,11 @@ export function OnboardingGate({ enabled }: { enabled: boolean }) {
   const segments = useSegments();
   const rootState = useRootNavigationState();
   const isLoading = auth?.isLoading ?? true;
-  const isLoggedIn = auth?.isLoggedIn ?? false;
-  const { ready: sessionReady, hasSession: hasSupabaseSession } = useSupabaseSession();
+  const isAuthenticated = useIsAuthenticated();
+  const { ready: sessionReady } = useSupabaseSession();
   useOnboardingSessionVersion();
 
-  if (!enabled || !rootState?.key || isLoading || isLoggedIn || hasSupabaseSession) {
+  if (!enabled || !rootState?.key || isLoading || isAuthenticated) {
     return null;
   }
 

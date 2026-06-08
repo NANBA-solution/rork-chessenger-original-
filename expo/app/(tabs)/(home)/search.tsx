@@ -412,7 +412,7 @@ export default function HomeScreen() {
                   {userLocation ? t('location_enabled', language) : t('location_off', language)}
                 </Text>
               </Pressable>
-              <Pressable onPress={() => router.push('/(tabs)/(home)/map' as any)} style={styles.mapBtn}>
+              <Pressable onPress={() => router.push('/map' as any)} style={styles.mapBtn}>
                 <Map size={16} color={colors.blue} />
                 <Text style={[styles.mapBtnText, { color: colors.blue }]}>
                   {t('map_view', language)}
