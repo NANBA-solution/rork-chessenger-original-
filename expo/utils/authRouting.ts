@@ -1,5 +1,5 @@
-/** ログイン済みユーザーのホーム（タブ初期画面 = 検索） */
-export const HOME_HREF = '/(tabs)' as const;
+/** ログイン済みユーザーのホーム（グループ名は URL に出ない → /search） */
+export const HOME_HREF = '/search' as const;
 
 /** オンボーディング完了後のログイン画面（審査用デモアカウントはログインが先） */
 export const LOGIN_HREF = '/login' as const;

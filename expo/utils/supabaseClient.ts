@@ -50,8 +50,7 @@ declare global {
   var _supabaseSingleton: SupabaseClient | undefined;
 }
 
-if (!global._supabaseSingleton) {
-  ensureSupabaseConfig();
+if (!global._supabaseSingleton && isSupabaseConfigured()) {
   global._supabaseSingleton = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     auth: {
       ...(Platform.OS !== 'web' ? { storage: AsyncStorage } : {}),
@@ -71,8 +70,34 @@ if (!global._supabaseSingleton) {
   }
 }
 
-export const supabase = global._supabaseSingleton!;
-export const supabaseNoAuth = global._supabaseSingleton!;
+function requireSupabase(): SupabaseClient {
+  if (!global._supabaseSingleton) {
+    ensureSupabaseConfig();
+    if (!global._supabaseSingleton) {
+      global._supabaseSingleton = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        auth: {
+          ...(Platform.OS !== 'web' ? { storage: AsyncStorage } : {}),
+          autoRefreshToken: true,
+          persistSession: true,
+          detectSessionInUrl: Platform.OS === 'web',
+          lockAcquireTimeout: 60000,
+        },
+        realtime: { params: { eventsPerSecond: 5 } },
+      });
+    }
+  }
+  return global._supabaseSingleton;
+}
+
+export const supabase = new Proxy({} as SupabaseClient, {
+  get(_target, prop, receiver) {
+    const client = requireSupabase();
+    const value = Reflect.get(client, prop, receiver);
+    return typeof value === 'function' ? value.bind(client) : value;
+  },
+});
+
+export const supabaseNoAuth = supabase;
 
 /** ログイン前の接続確認（秘密情報は送らない） */
 export async function probeSupabaseConnectivity(): Promise<{ ok: boolean; detail?: string }> {
@@ -97,6 +122,7 @@ export async function probeSupabaseConnectivity(): Promise<{ ok: boolean; detail
 }
 
 export async function debugSession(): Promise<void> {
+  if (!isSupabaseConfigured()) return;
   const { data: { session } } = await supabase.auth.getSession();
   if (session) {
     console.log('debugSession: JWT present, user=' + session.user.id + ' expires=' + session.expires_at);
@@ -106,6 +132,7 @@ export async function debugSession(): Promise<void> {
 }
 
 export async function clearStaleSession(): Promise<void> {
+  if (!isSupabaseConfigured()) return;
   try {
     const { data: { session } } = await supabase.auth.getSession();
     if (session) {

@@ -3,7 +3,7 @@ import { AppState } from 'react-native';
 import createContextHook from '@nkzw/create-context-hook';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
-import { supabase, supabaseNoAuth, clearStaleSession, probeSupabaseConnectivity } from '@/utils/supabaseClient';
+import { supabase, supabaseNoAuth, clearStaleSession, probeSupabaseConnectivity, isSupabaseConfigured } from '@/utils/supabaseClient';
 import { AuthUser } from '@/types';
 import { registerForPushNotificationsAsync, savePushTokenToSupabase } from '@/utils/notifications';
 import { resetOnboarding } from '@/utils/onboardingStorage';
@@ -167,6 +167,12 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
   useEffect(() => {
     const loadUser = async () => {
       try {
+        if (!isSupabaseConfigured()) {
+          console.log('Auth: Supabase not configured — skipping session load');
+          setHasRemoteSession(false);
+          setUser(null);
+          return;
+        }
         console.log('Auth: Checking existing session...');
         await clearStaleSession();
         const expired = await checkSessionTimeout();

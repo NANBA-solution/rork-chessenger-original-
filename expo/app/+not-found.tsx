@@ -1,5 +1,5 @@
-import { Link, Stack, useRouter } from "expo-router";
-import { useEffect, useMemo } from "react";
+import { Link, Redirect, Stack, useRouter } from "expo-router";
+import { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { ThemeColors } from "@/constants/colors";
 import { useTheme } from "@/providers/ThemeProvider";
@@ -19,11 +19,9 @@ export default function NotFoundScreen() {
   const backLabel = t('back_to_home', language);
   const homeHref = isAuthenticated ? HOME_HREF : '/';
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      router.replace(HOME_HREF as never);
-    }
-  }, [isAuthenticated, router]);
+  if (isAuthenticated) {
+    return <Redirect href={HOME_HREF} />;
+  }
 
   return (
     <>
