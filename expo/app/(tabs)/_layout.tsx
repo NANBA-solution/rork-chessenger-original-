@@ -17,6 +17,7 @@ import { useTheme } from '@/providers/ThemeProvider';
 import { useChess } from '@/providers/ChessProvider';
 import { useAuth } from '@/providers/AuthProvider';
 import { useOnboardingSessionVersion } from '@/hooks/useOnboardingSession';
+import { useSupabaseSession } from '@/hooks/useSupabaseSession';
 import {
   guestBootHref,
   resolveGuestBootTargetSync,
@@ -323,10 +324,12 @@ export default function TabLayout() {
   const auth = useAuth();
   const isLoggedIn = auth?.isLoggedIn ?? false;
   const isLoading = auth?.isLoading ?? true;
+  const hasSupabaseSession = useSupabaseSession();
+  const isAuthenticated = isLoggedIn || hasSupabaseSession;
   useOnboardingSessionVersion();
-  const guestTarget = isLoggedIn ? 'allowed' : resolveGuestBootTargetSync(false);
+  const guestTarget = isAuthenticated ? 'allowed' : resolveGuestBootTargetSync(false);
 
-  if (!isLoggedIn && isLoading) {
+  if (!isAuthenticated && isLoading) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
         <ActivityIndicator size="large" color="#7C3AED" />
@@ -334,7 +337,7 @@ export default function TabLayout() {
     );
   }
 
-  if (!isLoggedIn && guestTarget !== 'allowed' && shouldForceGuestRedirect(guestTarget as 'onboarding' | 'signup', ['(tabs)'])) {
+  if (!isAuthenticated && guestTarget !== 'allowed' && shouldForceGuestRedirect(guestTarget as 'onboarding' | 'signup', ['(tabs)'])) {
     const href = guestBootHref(guestTarget);
     if (href) return <Redirect href={href as any} />;
   }

@@ -3,6 +3,7 @@ import { View, ActivityIndicator } from 'react-native';
 import { Redirect } from 'expo-router';
 import { useAuth } from '@/providers/AuthProvider';
 import { useOnboardingSessionVersion } from '@/hooks/useOnboardingSession';
+import { useSupabaseSession } from '@/hooks/useSupabaseSession';
 import {
   guestBootHref,
   resolveGuestBootTargetSync,
@@ -21,6 +22,8 @@ export function GuestBootRedirect({ expectedTarget }: Props) {
   const auth = useAuth();
   const isLoading = auth?.isLoading ?? true;
   const isLoggedIn = auth?.isLoggedIn ?? false;
+  const hasSupabaseSession = useSupabaseSession();
+  const isAuthenticated = isLoggedIn || hasSupabaseSession;
   useOnboardingSessionVersion();
   const [authReady, setAuthReady] = useState(!isLoading);
 
@@ -37,9 +40,9 @@ export function GuestBootRedirect({ expectedTarget }: Props) {
     );
   }
 
-  const target: GuestBootTarget = resolveGuestBootTargetSync(isLoggedIn);
+  const target: GuestBootTarget = resolveGuestBootTargetSync(isAuthenticated);
 
-  if (isLoggedIn) {
+  if (isAuthenticated) {
     return <Redirect href="/(tabs)/(home)/search" />;
   }
 
