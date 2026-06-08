@@ -1,4 +1,7 @@
-/** オンボーディング完了後の新規登録画面（expo-router 文字列形式が最も安定） */
+/** オンボーディング完了後のログイン画面（審査用デモアカウントはログインが先） */
+export const LOGIN_HREF = '/login' as const;
+
+/** 新規登録画面（expo-router 文字列形式が最も安定） */
 export const SIGNUP_LOGIN_HREF = '/login?mode=signup' as const;
 
 /** 未登録ユーザーの起動先（オンボード → 登録の順を保つ） */

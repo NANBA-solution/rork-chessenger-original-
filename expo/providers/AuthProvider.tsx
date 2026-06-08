@@ -15,6 +15,39 @@ const SESSION_TIMEOUT_MS = SESSION_TIMEOUT_HOURS * 60 * 60 * 1000;
 /** ログアウト・セッション切れ時に消すキー（言語・テーマは残す） */
 const AUTH_STORAGE_KEYS = [AUTH_KEY, SESSION_STARTED_KEY];
 
+export type LoginResult =
+  | { success: true }
+  | { success: false; errorKind: 'credentials' | 'network' | 'unknown'; message?: string };
+
+function normalizeAuthEmail(email: string): string {
+  return email.trim().toLowerCase();
+}
+
+function normalizeAuthPassword(password: string): string {
+  return password.trim();
+}
+
+function classifyLoginError(message: string): LoginResult {
+  const lower = message.toLowerCase();
+  if (
+    lower.includes('invalid login credentials') ||
+    lower.includes('invalid email or password') ||
+    lower.includes('email not confirmed')
+  ) {
+    return { success: false, errorKind: 'credentials', message };
+  }
+  if (
+    lower.includes('fetch') ||
+    lower.includes('network') ||
+    lower.includes('timeout') ||
+    lower.includes('failed to fetch') ||
+    lower.includes('connection')
+  ) {
+    return { success: false, errorKind: 'network', message };
+  }
+  return { success: false, errorKind: 'unknown', message };
+}
+
 export const [AuthProvider, useAuth] = createContextHook(() => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -275,14 +308,23 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
     return () => sub.remove();
   }, [checkSessionTimeout]);
 
-  const login = useCallback(async (email: string, password: string): Promise<boolean> => {
+  const login = useCallback(async (email: string, password: string): Promise<LoginResult> => {
+    const normalizedEmail = normalizeAuthEmail(email);
+    const normalizedPassword = normalizeAuthPassword(password);
+    if (!normalizedEmail || !normalizedPassword) {
+      return { success: false, errorKind: 'credentials' };
+    }
+
     try {
-      console.log('Auth: Attempting Supabase login for', email);
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      console.log('Auth: Attempting Supabase login for', normalizedEmail);
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: normalizedEmail,
+        password: normalizedPassword,
+      });
 
       if (error) {
         console.log('Auth: Supabase login error', error.message);
-        return false;
+        return classifyLoginError(error.message);
       }
 
       if (data.user) {
@@ -290,15 +332,15 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
 
         await ensureProfileExists(
           data.user.id,
-          data.user.email ?? email,
-          data.user.user_metadata?.name ?? email.split('@')[0],
+          data.user.email ?? normalizedEmail,
+          data.user.user_metadata?.name ?? normalizedEmail.split('@')[0],
           defaultAvatar
         );
 
         const authUser = await loadProfileFromSupabase(
           data.user.id,
-          data.user.email ?? email,
-          data.user.user_metadata?.name ?? email.split('@')[0],
+          data.user.email ?? normalizedEmail,
+          data.user.user_metadata?.name ?? normalizedEmail.split('@')[0],
           defaultAvatar
         );
         // Native: AsyncStorage に書き込み
@@ -321,34 +363,37 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
         }
         setUser(authUser);
         console.log('Auth: login success', authUser.name, '| session expires:', data.session?.expires_at);
-        return true;
+        return { success: true };
       }
-      return false;
+      return { success: false, errorKind: 'unknown' };
     } catch (e) {
       console.log('Auth: Login error', e);
-      return false;
+      const message = e instanceof Error ? e.message : String(e);
+      return classifyLoginError(message);
     }
   }, [loadProfileFromSupabase, ensureProfileExists]);
 
   const register = useCallback(async (name: string, email: string, password: string, profileData?: { chessComRating?: number | null; lichessRating?: number | null; bio?: string; skillLevel?: string }): Promise<{ success: boolean; error?: string; pendingVerification?: boolean }> => {
     try {
-      console.log('Auth: Attempting Supabase register for', email, 'with username:', name);
+      const normalizedEmail = normalizeAuthEmail(email);
+      const normalizedPassword = normalizeAuthPassword(password);
+      console.log('Auth: Attempting Supabase register for', normalizedEmail, 'with username:', name);
 
       if (name.trim().length < 1) {
         return { success: false, error: 'Username is required' };
       }
-      if (!email.includes('@')) {
+      if (!normalizedEmail.includes('@')) {
         return { success: false, error: 'Invalid email address' };
       }
-      if (password.length < 6) {
+      if (normalizedPassword.length < 6) {
         return { success: false, error: 'Password must be at least 6 characters' };
       }
 
       const trimmedName = name.trim();
 
       const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
+        email: normalizedEmail,
+        password: normalizedPassword,
         options: {
           data: { username: trimmedName, name: trimmedName },
         },
@@ -366,7 +411,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
         const profileRow: Record<string, unknown> = {
           id: data.user.id,
           name: trimmedName,
-          email: data.user.email ?? email,
+          email: data.user.email ?? normalizedEmail,
           avatar: defaultAvatar,
           rating: computedRating,
           bio: profileData?.bio ?? '',
@@ -391,7 +436,10 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
         if (!sessionReady) {
           console.log('Auth: No session yet, attempting auto sign-in');
           try {
-            const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+            const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+              email: normalizedEmail,
+              password: normalizedPassword,
+            });
             sessionReady = !!signInData?.session;
             if (signInError) console.log('Auth: Auto sign-in error', signInError.message);
           } catch (signInErr) {
@@ -404,7 +452,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
           if (session?.user) {
             const authUser = await loadProfileFromSupabase(
               session.user.id,
-              session.user.email ?? email,
+              session.user.email ?? normalizedEmail,
               trimmedName,
               defaultAvatar,
             );

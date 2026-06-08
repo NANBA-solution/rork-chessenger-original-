@@ -1,5 +1,5 @@
 import { isOnboardingComplete, isOnboardingCompleteSync } from '@/utils/onboardingStorage';
-import { ONBOARDING_HREF, SIGNUP_LOGIN_HREF } from '@/utils/authRouting';
+import { LOGIN_HREF, ONBOARDING_HREF } from '@/utils/authRouting';
 
 export type GuestBootTarget = 'loading' | 'onboarding' | 'signup' | 'home';
 
@@ -18,7 +18,7 @@ export async function resolveGuestBootTarget(isLoggedIn: boolean): Promise<Guest
 export function guestBootHref(target: GuestBootTarget): string | null {
   if (target === 'home') return '/(tabs)/(home)/search';
   if (target === 'onboarding') return ONBOARDING_HREF;
-  if (target === 'signup') return SIGNUP_LOGIN_HREF;
+  if (target === 'signup') return LOGIN_HREF;
   return null;
 }
 

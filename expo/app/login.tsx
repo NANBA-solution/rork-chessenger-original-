@@ -269,12 +269,18 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       if (isLogin) {
-        const success = await login(email, password);
-        if (success) {
+        const result = await login(email, password);
+        if (result.success) {
           playLoginSuccessSound().catch(() => {});
           router.replace('/(tabs)' as any);
         } else {
-          Alert.alert(t('login_error', language), t('login_error_desc', language));
+          const desc =
+            result.errorKind === 'network'
+              ? t('login_error_network', language)
+              : result.errorKind === 'credentials'
+                ? t('login_error_desc', language)
+                : t('login_error_unknown', language);
+          Alert.alert(t('login_error', language), desc);
         }
       } else {
         const result = await register(name, email, password, {
@@ -364,6 +370,8 @@ export default function LoginScreen() {
                 onChangeText={setEmail}
                 keyboardType="email-address"
                 autoCapitalize="none"
+                autoCorrect={false}
+                textContentType="emailAddress"
               />
             </View>
 
@@ -376,6 +384,9 @@ export default function LoginScreen() {
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry
+                autoCapitalize="none"
+                autoCorrect={false}
+                textContentType="password"
               />
             </View>
 
