@@ -114,6 +114,12 @@ jobs:
       - name: Expo prebuild (iOS)
         run: npx expo prebuild --platform ios --non-interactive
 
+      - name: Verify app.config extra has Supabase host
+        run: |
+          HOST="$(node -p "require('./app.config.js').expo.extra.supabaseUrl.replace(/^https?:\\/\\/([^/]+).*/,'\$1')")"
+          test -n "$HOST" || (echo "::error::app.config.js extra.supabaseUrl が空です" && exit 1)
+          echo "OK: app.config extra host=$HOST"
+
       - name: CocoaPods install
         run: |
           cd ios

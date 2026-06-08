@@ -287,7 +287,7 @@ export default function LoginScreen() {
         } else {
           const desc =
             result.errorKind === 'network'
-              ? `${t('login_error_network', language)}\n\n${t('login_error_network_host', language, { host: getSupabaseHostForDebug() })}`
+              ? `${t('login_error_network', language)}\n\n${t('login_error_network_host', language, { host: getSupabaseHostForDebug() })}${result.message ? `\n(${result.message})` : ''}`
               : result.errorKind === 'credentials'
                 ? t('login_error_desc', language)
                 : t('login_error_unknown', language);

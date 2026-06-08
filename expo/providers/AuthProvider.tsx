@@ -3,7 +3,7 @@ import { AppState } from 'react-native';
 import createContextHook from '@nkzw/create-context-hook';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
-import { supabase, supabaseNoAuth, clearStaleSession } from '@/utils/supabaseClient';
+import { supabase, supabaseNoAuth, clearStaleSession, probeSupabaseConnectivity } from '@/utils/supabaseClient';
 import { AuthUser } from '@/types';
 import { registerForPushNotificationsAsync, savePushTokenToSupabase } from '@/utils/notifications';
 import { resetOnboarding } from '@/utils/onboardingStorage';
@@ -52,6 +52,8 @@ function classifyLoginError(message: string): LoginResult {
 export const [AuthProvider, useAuth] = createContextHook(() => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [hasRemoteSession, setHasRemoteSession] = useState<boolean>(false);
+  const [authBootstrapped, setAuthBootstrapped] = useState<boolean>(false);
   const initialLoadDone = useRef(false);
   const router = useRouter();
 
@@ -169,10 +171,13 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
         await clearStaleSession();
         const expired = await checkSessionTimeout();
         if (expired) {
+          setHasRemoteSession(false);
           setIsLoading(false);
+          setAuthBootstrapped(true);
           return;
         }
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        setHasRemoteSession(!!session?.user);
         console.log('AUTH_SESSION_CHECK:', sessionError ? sessionError.message : 'no error', 'hasSession:', !!session);
         if (session?.user) {
           const { data: { user }, error: userError } = await supabase.auth.getUser();
@@ -244,6 +249,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
         }
       } finally {
         initialLoadDone.current = true;
+        setAuthBootstrapped(true);
         setIsLoading(false);
       }
     };
@@ -251,6 +257,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth: State changed', event, session?.user?.id);
+      setHasRemoteSession(!!session?.user);
 
       if (event === 'SIGNED_IN' && session?.user) {
         await AsyncStorage.setItem(SESSION_STARTED_KEY, String(Date.now()));
@@ -281,6 +288,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
           }
         }
       } else if (event === 'SIGNED_OUT') {
+        setHasRemoteSession(false);
         setUser(null);
         await AsyncStorage.removeItem(AUTH_KEY);
         console.log('Auth: SIGNED_OUT - user cleared');
@@ -317,6 +325,12 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
     }
 
     try {
+      const probe = await probeSupabaseConnectivity();
+      if (!probe.ok) {
+        console.log('Auth: Supabase connectivity probe failed', probe.detail);
+        return { success: false, errorKind: 'network', message: probe.detail };
+      }
+
       console.log('Auth: Attempting Supabase login for', normalizedEmail);
       const { data, error } = await supabase.auth.signInWithPassword({
         email: normalizedEmail,
@@ -362,6 +376,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
             console.log('Auth: localStorage write FAILED', lsErr);
           }
         }
+        setHasRemoteSession(true);
         setUser(authUser);
         console.log('Auth: login success', authUser.name, '| session expires:', data.session?.expires_at);
         return { success: true };
@@ -391,6 +406,12 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
       }
 
       const trimmedName = name.trim();
+
+      const probe = await probeSupabaseConnectivity();
+      if (!probe.ok) {
+        console.log('Auth: Supabase connectivity probe failed (register)', probe.detail);
+        return { success: false, error: probe.detail ?? 'Network error' };
+      }
 
       const { data, error } = await supabase.auth.signUp({
         email: normalizedEmail,
@@ -459,6 +480,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
             );
             await AsyncStorage.setItem(AUTH_KEY, JSON.stringify(authUser));
             await AsyncStorage.setItem(SESSION_STARTED_KEY, String(Date.now()));
+            setHasRemoteSession(true);
             setUser(authUser);
             console.log('Auth: Supabase register success with session', authUser.name);
             return { success: true };
@@ -556,6 +578,8 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
   return {
     user,
     isLoading,
+    authBootstrapped,
+    hasRemoteSession,
     isLoggedIn: !!user?.isLoggedIn,
     login,
     register,
