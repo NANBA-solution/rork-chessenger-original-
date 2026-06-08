@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Redirect, useRootNavigationState, useSegments } from 'expo-router';
 import { useAuth } from '@/providers/AuthProvider';
 import { useOnboardingSessionVersion } from '@/hooks/useOnboardingSession';
+import { supabase } from '@/utils/supabaseClient';
 import {
   guestBootHref,
   resolveGuestBootTargetSync,
@@ -17,9 +18,24 @@ export function OnboardingGate({ enabled }: { enabled: boolean }) {
   const rootState = useRootNavigationState();
   const isLoading = auth?.isLoading ?? true;
   const isLoggedIn = auth?.isLoggedIn ?? false;
+  const [hasSupabaseSession, setHasSupabaseSession] = useState(false);
   useOnboardingSessionVersion();
 
-  if (!enabled || !rootState?.key || isLoading || isLoggedIn) {
+  useEffect(() => {
+    let mounted = true;
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (mounted) setHasSupabaseSession(!!session?.user);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setHasSupabaseSession(!!session?.user);
+    });
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  if (!enabled || !rootState?.key || isLoading || isLoggedIn || hasSupabaseSession) {
     return null;
   }
 

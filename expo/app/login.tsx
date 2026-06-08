@@ -272,7 +272,7 @@ export default function LoginScreen() {
         const result = await login(email, password);
         if (result.success) {
           playLoginSuccessSound().catch(() => {});
-          router.replace('/(tabs)' as any);
+          // 遷移は GuestBootRedirect に任せる（即 router.replace だと OnboardingGate と競合して戻される）
         } else {
           const desc =
             result.errorKind === 'network'
@@ -294,7 +294,6 @@ export default function LoginScreen() {
             );
           } else {
             playLoginSuccessSound().catch(() => {});
-            router.replace('/(tabs)' as any);
           }
         } else {
           Alert.alert(
