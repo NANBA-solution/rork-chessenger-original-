@@ -4,6 +4,7 @@ import { Redirect } from 'expo-router';
 import { useAuth } from '@/providers/AuthProvider';
 import { useOnboardingSessionVersion } from '@/hooks/useOnboardingSession';
 import { useSupabaseSession } from '@/hooks/useSupabaseSession';
+import { HOME_HREF } from '@/utils/authRouting';
 import {
   guestBootHref,
   resolveGuestBootTargetSync,
@@ -43,7 +44,7 @@ export function GuestBootRedirect({ expectedTarget }: Props) {
   const target: GuestBootTarget = resolveGuestBootTargetSync(isAuthenticated);
 
   if (isAuthenticated) {
-    return <Redirect href="/(tabs)/(home)/search" />;
+    return <Redirect href={HOME_HREF} />;
   }
 
   if (expectedTarget && target === expectedTarget) {

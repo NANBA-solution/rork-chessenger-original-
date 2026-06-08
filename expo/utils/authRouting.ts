@@ -1,3 +1,6 @@
+/** ログイン済みユーザーのホーム（タブ初期画面 = 検索） */
+export const HOME_HREF = '/(tabs)' as const;
+
 /** オンボーディング完了後のログイン画面（審査用デモアカウントはログインが先） */
 export const LOGIN_HREF = '/login' as const;
 
@@ -16,4 +19,9 @@ export function isSignupMode(mode: string | string[] | undefined): boolean {
 /** オンボード完了後の新規登録へ（Redirect より router.replace の方がネイティブで安定） */
 export function navigateToSignup(router: { replace: (href: string) => void }): void {
   router.replace({ pathname: '/login', params: { mode: 'signup' } } as never);
+}
+
+/** ログイン済みホームへ */
+export function navigateToHome(router: { replace: (href: string) => void }): void {
+  router.replace(HOME_HREF as never);
 }

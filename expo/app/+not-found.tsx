@@ -1,19 +1,29 @@
 import { Link, Stack, useRouter } from "expo-router";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { ThemeColors } from "@/constants/colors";
 import { useTheme } from "@/providers/ThemeProvider";
 import { useChess } from "@/providers/ChessProvider";
+import { useAuth } from "@/providers/AuthProvider";
 import { BackNavButton } from "@/components/BackNavButton";
+import { HOME_HREF } from "@/utils/authRouting";
 import { t } from "@/utils/translations";
 
 export default function NotFoundScreen() {
   const { colors } = useTheme();
   const { language } = useChess();
+  const { isLoggedIn } = useAuth();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
   const title = t('page_not_found', language);
   const backLabel = t('back_to_home', language);
+  const homeHref = isLoggedIn ? HOME_HREF : '/';
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      router.replace(HOME_HREF as never);
+    }
+  }, [isLoggedIn, router]);
 
   return (
     <>
@@ -26,7 +36,7 @@ export default function NotFoundScreen() {
       <View style={styles.container}>
         <Text style={styles.icon}>♟</Text>
         <Text style={styles.title}>{title}</Text>
-        <Link href="/" style={styles.link}>
+        <Link href={homeHref} style={styles.link}>
           <Text style={styles.linkText}>{backLabel}</Text>
         </Link>
       </View>

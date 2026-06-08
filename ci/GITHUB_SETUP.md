@@ -25,8 +25,9 @@
 ### ビルドだけ上げる（1.0.0 のまま・修正反映）
 
 1. ローカルで動作確認
-2. `git commit` → `git push origin main`
-3. GitHub → **Actions** → **iOS TestFlight Upload** が緑になるまで待つ
+2. `git commit` → `git push origin main`（コード反映）
+3. GitHub → **Actions** → **iOS TestFlight Upload** → **Run workflow**（手動実行）
+4. ワークフローが緑になるまで待つ
 4. [App Store Connect](https://appstoreconnect.apple.com) → **TestFlight** → Processing 完了
 5. 審査中なら **同じバージョン** で **新しいビルド** を選び直す
 
@@ -44,13 +45,9 @@ push せずに CI だけ走らせる場合:
 
 GitHub → **Actions** → **iOS TestFlight Upload** → **Run workflow** → branch `main`
 
-## push で CI が走るパス
+## CI の起動
 
-- `expo/**`
-- `.github/workflows/ios-testflight.yml`
-- `ci/**`
-
-ルートだけの変更では走りません。アプリ変更は `expo/` 配下に含めてください。
+**push では自動実行されません。** Actions → **iOS TestFlight Upload** → **Run workflow** で手動実行してください。
 
 ## トラブルシュート
 

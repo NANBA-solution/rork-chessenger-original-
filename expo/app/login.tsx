@@ -24,7 +24,7 @@ import { useAuth } from '@/providers/AuthProvider';
 import { useChess } from '@/providers/ChessProvider';
 import { t } from '@/utils/translations';
 import { primeAudioForApp, playLoginSuccessSound } from '@/utils/messageNotificationSound';
-import { isSignupMode } from '@/utils/authRouting';
+import { HOME_HREF, isSignupMode } from '@/utils/authRouting';
 import { GuestBootRedirect } from '@/components/GuestBootRedirect';
 import { useSupabaseSession } from '@/hooks/useSupabaseSession';
 import { getSupabaseHostForDebug, isSupabaseConfigured } from '@/utils/supabaseClient';
@@ -264,7 +264,7 @@ export default function LoginScreen() {
   useEffect(() => {
     if (!authPending || (!isLoggedIn && !hasSupabaseSession)) return;
     setAuthPending(false);
-    router.replace('/(tabs)/(home)/search' as any);
+    router.replace(HOME_HREF as any);
   }, [authPending, isLoggedIn, hasSupabaseSession, router]);
 
   const handleSubmit = useCallback(async () => {

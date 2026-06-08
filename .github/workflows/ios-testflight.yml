@@ -5,12 +5,6 @@ name: iOS TestFlight Upload
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - "expo/**"
-      - ".github/workflows/ios-testflight.yml"
-      - "ci/**"
 
 concurrency:
   group: ios-testflight-${{ github.ref }}
