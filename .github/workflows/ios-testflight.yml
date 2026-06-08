@@ -72,14 +72,32 @@ jobs:
           echo "APPSTORE_ISSUER_ID_CLEAN=$ISSUER" >> "$GITHUB_ENV"
           echo "APPSTORE_API_KEY_ID_CLEAN=$KEY_ID" >> "$GITHUB_ENV"
           echo "DEVELOPMENT_TEAM_CLEAN=$TEAM" >> "$GITHUB_ENV"
+          echo "EXPO_PUBLIC_SUPABASE_URL_CLEAN=$SUPA_URL" >> "$GITHUB_ENV"
+          echo "EXPO_PUBLIC_SUPABASE_ANON_KEY_CLEAN=$SUPA_KEY" >> "$GITHUB_ENV"
+          case "$SUPA_URL" in
+            https://*.supabase.co) ;;
+            *)
+              echo "::error::EXPO_PUBLIC_SUPABASE_URL の形式が不正です（https://xxxx.supabase.co である必要があります）"
+              exit 1
+              ;;
+          esac
+          case "$SUPA_KEY" in
+            eyJ*) ;;
+            *)
+              echo "::error::EXPO_PUBLIC_SUPABASE_ANON_KEY は JWT（eyJ...）である必要があります"
+              exit 1
+              ;;
+          esac
+          SUPA_HOST="$(printf '%s' "$SUPA_URL" | sed -E 's#^https?://([^/]+).*#\1#')"
+          echo "Supabase host (trimmed): $SUPA_HOST"
 
       # xcodebuild の Metro バンドルは .env を読む。未設定だと supabaseClient が起動直後に throw → 審査で crash on launch
       - name: Write production .env
         run: |
           umask 077
           printf '%s\n' \
-            "EXPO_PUBLIC_SUPABASE_URL=${EXPO_PUBLIC_SUPABASE_URL}" \
-            "EXPO_PUBLIC_SUPABASE_ANON_KEY=${EXPO_PUBLIC_SUPABASE_ANON_KEY}" \
+            "EXPO_PUBLIC_SUPABASE_URL=${EXPO_PUBLIC_SUPABASE_URL_CLEAN}" \
+            "EXPO_PUBLIC_SUPABASE_ANON_KEY=${EXPO_PUBLIC_SUPABASE_ANON_KEY_CLEAN}" \
             > .env
           test -s .env
           echo "Wrote expo/.env ($(wc -l < .env | tr -d ' ') keys, values not logged)"
@@ -151,7 +169,8 @@ jobs:
             echo "::warning::main.jsbundle が見つかりません（検証スキップ）"
             exit 0
           fi
-          HOST="$(printf '%s' "$EXPO_PUBLIC_SUPABASE_URL" | sed -E 's#^https?://([^/]+).*#\1#')"
+          HOST="$(printf '%s' "$EXPO_PUBLIC_SUPABASE_URL_CLEAN" | sed -E 's#^https?://([^/]+).*#\1#')"
+          KEY_PREFIX="$(printf '%s' "$EXPO_PUBLIC_SUPABASE_ANON_KEY_CLEAN" | cut -c1-12)"
           if [ -z "$HOST" ]; then
             echo "::error::EXPO_PUBLIC_SUPABASE_URL が空です"
             exit 1
@@ -160,7 +179,11 @@ jobs:
             echo "::error::Supabase URL ($HOST) が JS バンドルに埋め込まれていません。起動時クラッシュの原因になります。"
             exit 1
           fi
-          echo "OK: Supabase host found in $(basename "$BUNDLE")"
+          if ! grep -qF "$KEY_PREFIX" "$BUNDLE"; then
+            echo "::error::Supabase anon key の先頭 ($KEY_PREFIX...) が JS バンドルに見つかりません。TestFlight で Network request failed の原因になります。"
+            exit 1
+          fi
+          echo "OK: Supabase host + anon key prefix found in $(basename "$BUNDLE")"
 
       - name: Export IPA
         run: |

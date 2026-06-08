@@ -1,12 +1,23 @@
+import 'react-native-url-polyfill/auto';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
-const SUPABASE_URL = (process.env.EXPO_PUBLIC_SUPABASE_URL ?? '').trim();
-const SUPABASE_ANON_KEY = (process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '').trim();
+function sanitizeEnvValue(value: string): string {
+  return value.trim().replace(/^["']|["']$/g, '');
+}
+
+const SUPABASE_URL = sanitizeEnvValue(process.env.EXPO_PUBLIC_SUPABASE_URL ?? '');
+const SUPABASE_ANON_KEY = sanitizeEnvValue(process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '');
 
 export function isSupabaseConfigured(): boolean {
   return !!SUPABASE_URL && !!SUPABASE_ANON_KEY;
+}
+
+/** エラー表示用（ホストのみ・秘密情報なし） */
+export function getSupabaseHostForDebug(): string {
+  const m = SUPABASE_URL.match(/^https?:\/\/([^/]+)/i);
+  return m?.[1] ?? '(not configured)';
 }
 
 function ensureSupabaseConfig(): void {

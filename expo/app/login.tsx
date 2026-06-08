@@ -27,7 +27,7 @@ import { primeAudioForApp, playLoginSuccessSound } from '@/utils/messageNotifica
 import { isSignupMode } from '@/utils/authRouting';
 import { GuestBootRedirect } from '@/components/GuestBootRedirect';
 import { useSupabaseSession } from '@/hooks/useSupabaseSession';
-import { isSupabaseConfigured } from '@/utils/supabaseClient';
+import { getSupabaseHostForDebug, isSupabaseConfigured } from '@/utils/supabaseClient';
 
 const { width: SW } = Dimensions.get('window');
 
@@ -287,7 +287,7 @@ export default function LoginScreen() {
         } else {
           const desc =
             result.errorKind === 'network'
-              ? t('login_error_network', language)
+              ? `${t('login_error_network', language)}\n\n${t('login_error_network_host', language, { host: getSupabaseHostForDebug() })}`
               : result.errorKind === 'credentials'
                 ? t('login_error_desc', language)
                 : t('login_error_unknown', language);

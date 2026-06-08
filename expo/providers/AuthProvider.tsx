@@ -41,7 +41,8 @@ function classifyLoginError(message: string): LoginResult {
     lower.includes('network') ||
     lower.includes('timeout') ||
     lower.includes('failed to fetch') ||
-    lower.includes('connection')
+    lower.includes('connection') ||
+    lower.includes('authretryablefetcherror')
   ) {
     return { success: false, errorKind: 'network', message };
   }
