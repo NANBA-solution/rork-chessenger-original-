@@ -11,28 +11,31 @@ App Store Connect 提出用の静的 Web サイトです。
 | `support.html` | サポート・FAQ | **サポート URL** |
 | `terms.html` | 利用規約 | 参考（アプリ内と同一内容） |
 
-## 公開方法（GitHub Pages）
+## 公開 URL（Vercel・本番）
 
-1. GitHub リポジトリ → **Settings** → **Pages**
-2. **Source**: Deploy from a branch
-3. **Branch**: `main` / **Folder**: `/lp`
-4. Save
+| ページ | URL |
+|--------|-----|
+| トップ | https://lp-five-eta.vercel.app/ |
+| プライバシー | https://lp-five-eta.vercel.app/privacy |
+| サポート | https://lp-five-eta.vercel.app/support |
+| 利用規約 | https://lp-five-eta.vercel.app/terms |
 
-公開後の URL 例:
+## 再デプロイ（Vercel CLI）
 
-- トップ: `https://<username>.github.io/<repo>/`
-- プライバシー: `https://<username>.github.io/<repo>/privacy.html`
-- サポート: `https://<username>.github.io/<repo>/support.html`
+```bash
+cd lp
+npx vercel deploy --prod
+```
 
-> リポジトリ名が `rork-chessenger` の場合、ルートは `https://<username>.github.io/rork-chessenger/` になります。
+Vercel ダッシュボード: https://vercel.com/hiroki-nanba-s-projects/lp
 
 ## App Store Connect への入力例
 
 | 項目 | URL |
 |------|-----|
-| プライバシーポリシー URL | `https://<your-domain>/privacy.html` |
-| サポート URL | `https://<your-domain>/support.html` |
-| マーケティング URL | `https://<your-domain>/` |
+| プライバシーポリシー URL | `https://lp-five-eta.vercel.app/privacy` |
+| サポート URL | `https://lp-five-eta.vercel.app/support` |
+| マーケティング URL | `https://lp-five-eta.vercel.app/` |
 
 ## ローカル確認
 
