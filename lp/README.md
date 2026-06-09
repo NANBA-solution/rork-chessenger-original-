@@ -11,6 +11,14 @@ App Store Connect 提出用の静的 Web サイトです。
 | `support.html` | サポート・FAQ | **サポート URL** |
 | `terms.html` | 利用規約 | 参考（アプリ内と同一内容） |
 
+## App Store リンク
+
+```
+https://apps.apple.com/app/id6760141565
+```
+
+（バンドル ID: `chessenger.app` / App ID: `6760141565`）
+
 ## 公開 URL（Vercel・本番）
 
 | ページ | URL |
