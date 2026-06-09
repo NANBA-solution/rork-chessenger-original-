@@ -47,9 +47,4 @@ python3 -m http.server 8080
 
 ## 審査用デモアカウント
 
-LP に記載済み（`index.html` / `support.html`）:
-
-- メール: `chessenger.co.ltd@gmail.com`
-- パスワード: `chessenger`
-
-App Store Connect の「審査用メモ」にも同内容を記載してください。
+LP には掲載しません。App Store Connect の「審査用メモ」にのみ記載してください。

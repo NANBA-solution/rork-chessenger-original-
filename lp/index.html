@@ -3,110 +3,104 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Chessengerは、対面でチェスを楽しみたいプレイヤー同士をマッチングするiOSアプリです。近くのプレイヤーを探し、対局リクエストを送って実際に会って対局できます。" />
+  <meta name="description" content="Chessenger — 近くのチェス仲間を見つけて、対面で対局。スキルやスタイルで相手を探し、メッセージで調整して実際に会ってプレイできます。" />
   <title>Chessenger — 近くのチェス仲間を見つけよう</title>
   <link rel="icon" href="assets/app-icon.png" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <header class="site-header">
-    <div class="container inner">
+    <div class="inner">
       <a class="brand" href="index.html">
-        <img src="assets/app-icon.png" alt="Chessenger" width="36" height="36" />
+        <img src="assets/app-icon.png" alt="" width="32" height="32" />
         Chessenger
       </a>
       <nav class="nav">
         <a href="#features">機能</a>
-        <a href="#review">審査用アカウント</a>
         <a href="support.html">サポート</a>
-        <a href="privacy.html">プライバシー</a>
-        <a href="terms.html">利用規約</a>
+        <a class="nav-cta" href="https://apps.apple.com/" target="_blank" rel="noopener">入手</a>
       </nav>
     </div>
   </header>
 
-  <main>
+  <div class="hero-wrap">
+    <div class="hero-bg" aria-hidden="true">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+    </div>
+
     <section class="container hero">
       <div>
-        <div class="eyebrow">♟ 対面チェスマッチングアプリ</div>
-        <h1>近くのチェス仲間を<br />見つけて、対局しよう</h1>
+        <div class="eyebrow">♟ 対面チェスマッチング</div>
+        <h1>近くのチェス仲間を<br /><em>見つけて、対局</em></h1>
         <p class="lead">
-          Chessengerは、対面でチェスを楽しみたいプレイヤー同士をつなぐマッチングアプリです。
-          スキルやプレイスタイルで相手を探し、メッセージで調整して、実際に会って対局できます。
+          スキルやプレイスタイルで相手を探して、メッセージで日程を調整。
+          実際に会ってチェスを楽しめる、プレイヤー向けアプリです。
         </p>
         <div class="cta-row">
-          <a class="btn btn-primary" href="https://apps.apple.com/" target="_blank" rel="noopener">App Store で入手</a>
-          <a class="btn btn-secondary" href="support.html">サポート・お問い合わせ</a>
+          <a class="btn btn-primary" href="https://apps.apple.com/" target="_blank" rel="noopener">
+            App Store で入手
+          </a>
         </div>
       </div>
       <div class="hero-visual">
-        <img src="assets/slide-welcome.png" alt="Chessenger マスコット" width="360" height="360" />
+        <img src="assets/slide-welcome.png" alt="Chessenger" width="380" height="380" />
       </div>
     </section>
+  </div>
 
-    <section class="section" id="features">
-      <div class="container section-title">
-        <h2>主な機能</h2>
-        <p>プレイヤー検索から対局後の評価まで、対面チェスに必要な機能をひとつに</p>
+  <section class="section" id="features">
+    <div class="container section-head">
+      <p class="section-label">Features</p>
+      <div class="section-title">
+        <h2>対面チェスに必要なこと、これひとつ</h2>
+        <p>探す・つながる・対局する。シンプルな流れで、すぐに始められます。</p>
       </div>
-      <div class="container features">
-        <article class="feature-card">
-          <img src="assets/slide-welcome.png" alt="プレイヤーを探す" loading="lazy" />
-          <h3>プレイヤーを探す</h3>
-          <p>ホームでスキルやスタイルに合う相手を検索。オンライン・近くのプレイヤーも絞り込めます。</p>
-        </article>
-        <article class="feature-card">
-          <img src="assets/slide-community.png" alt="コミュニティ" loading="lazy" />
-          <h3>コミュニティ</h3>
-          <p>タイムラインで近くのプレイヤーの動きをチェック。気になる相手にメッセージを送れます。</p>
-        </article>
-        <article class="feature-card">
-          <img src="assets/slide-match.png" alt="対局リクエスト" loading="lazy" />
-          <h3>対局リクエストを送る</h3>
-          <p>プロフィールから持ち時間を選んでリクエスト。承諾されたら対局の準備完了です。</p>
-        </article>
-        <article class="feature-card">
-          <img src="assets/slide-connect.png" alt="つながって対局" loading="lazy" />
-          <h3>つながって対局しよう</h3>
-          <p>メッセージやタイムラインで交流。対局後は結果報告や評価もできます。</p>
-        </article>
-      </div>
-    </section>
+    </div>
 
-    <section class="section" id="review">
-      <div class="container">
-        <div class="review-box">
-          <h3>App Store 審査用デモアカウント</h3>
-          <p>
-            審査担当者様は、以下のアカウントでログインして全機能をご確認いただけます。
-            ログイン画面で「ログイン」タブを選択し、メールアドレスとパスワードを入力してください。
-          </p>
-          <div class="review-grid">
-            <div class="review-item">
-              <span>メールアドレス</span>
-              <strong>chessenger.co.ltd@gmail.com</strong>
-            </div>
-            <div class="review-item">
-              <span>パスワード</span>
-              <strong>chessenger</strong>
-            </div>
-          </div>
-          <p style="margin-top:16px;color:var(--text-secondary);font-size:0.92rem;">
-            ※ iPhone 専用アプリです（iPad 非対応）。位置情報は任意で、オフのままでも利用できます。
-          </p>
-        </div>
+    <div class="container bento">
+      <article class="bento-card span-7">
+        <div class="bento-icon purple">🔍</div>
+        <h3>プレイヤーを探す</h3>
+        <p>スキルレベルやプレイスタイルで絞り込み。オンライン・近くのプレイヤーも一目でわかります。</p>
+      </article>
+      <article class="bento-card span-5">
+        <div class="bento-icon green">📍</div>
+        <h3>マップで近くを確認</h3>
+        <p>位置情報をオンにすれば、近くにいるプレイヤーをマップ上で確認できます（任意）。</p>
+      </article>
+      <article class="bento-card span-4">
+        <div class="bento-icon purple">♟</div>
+        <h3>対局リクエスト</h3>
+        <p>プロフィールから持ち時間を選んで送信。相手が承諾すれば対局確定です。</p>
+      </article>
+      <article class="bento-card span-8">
+        <div class="bento-icon green">💬</div>
+        <h3>メッセージ &amp; タイムライン</h3>
+        <p>対局の調整はメッセージで。タイムラインでコミュニティの動きもチェックできます。対局後は結果報告や評価も。</p>
+      </article>
+      <div class="bento-visual">
+        <img src="assets/slide-welcome.png" alt="" loading="lazy" />
+        <img src="assets/slide-community.png" alt="" loading="lazy" />
+        <img src="assets/slide-match.png" alt="" loading="lazy" />
+        <img src="assets/slide-connect.png" alt="" loading="lazy" />
       </div>
-    </section>
-  </main>
+    </div>
+  </section>
+
+  <section class="cta-band">
+    <h2>チェス仲間、探しにいこう</h2>
+    <p>iPhone 向けアプリ。今すぐダウンロード。</p>
+    <a class="btn btn-primary" href="https://apps.apple.com/" target="_blank" rel="noopener">App Store で入手</a>
+  </section>
 
   <footer class="site-footer">
     <div class="container footer-grid">
-      <div>© 2025 Chessenger. All rights reserved.</div>
+      <div class="footer-brand">© 2025 Chessenger</div>
       <div class="footer-links">
-        <a href="privacy.html">プライバシーポリシー</a>
+        <a href="privacy.html">プライバシー</a>
         <a href="terms.html">利用規約</a>
         <a href="support.html">サポート</a>
-        <a href="mailto:chessenger.co.ltd@gmail.com">chessenger.co.ltd@gmail.com</a>
       </div>
     </div>
   </footer>
