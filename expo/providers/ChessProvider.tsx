@@ -19,7 +19,7 @@ import {
   notifyTimelineComment,
 } from '@/utils/notifications';
 import { playMessageNotificationSound } from '@/utils/messageNotificationSound';
-import { filterOutTestProfiles, isTestProfile } from '@/utils/testUsers';
+import { filterOutTestProfiles, filterVisiblePlayers, isTestProfile } from '@/utils/testUsers';
 
 const LANGUAGE_KEY = 'chess_language';
 const EVENT_CACHE_KEY = 'chess_event_cache';
@@ -432,6 +432,11 @@ export const [ChessProvider, useChess] = createContextHook(() => {
         draws: stats.draws ?? 0,
       };
 
+      if (isTestProfile(merged)) {
+        profileCacheRef.current.delete(userId);
+        return null;
+      }
+
       if (__DEV__) {
         console.log('ChessProvider: fetchPlayerProfile', userId, 'games_played=', merged.games_played, 'from RPC');
       }
@@ -768,7 +773,7 @@ export const [ChessProvider, useChess] = createContextHook(() => {
           const converted = visibleProfiles.map((p) =>
             supabaseProfileToPlayer(p, userLat, userLon)
           );
-          setSupabasePlayers(converted);
+          setSupabasePlayers(filterVisiblePlayers(converted));
           converted.forEach((p) => profileCacheRef.current.set(p.id, p));
           console.log('ChessProvider: Loaded', converted.length, 'players from Supabase');
 
@@ -1244,15 +1249,19 @@ export const [ChessProvider, useChess] = createContextHook(() => {
           const userLon = userLocation?.longitude;
           const player = supabaseProfileToPlayer(newProfile, userLat, userLon);
           profileCacheRef.current.set(player.id, player);
-          setSupabasePlayers(prev => {
-            const existing = prev.findIndex(p => p.id === player.id);
-            if (existing >= 0) {
-              const updated = [...prev];
-              updated[existing] = player;
-              return updated;
-            }
-            return [...prev, player];
-          });
+          setSupabasePlayers((prev) =>
+            filterVisiblePlayers(
+              (() => {
+                const existing = prev.findIndex((p) => p.id === player.id);
+                if (existing >= 0) {
+                  const updated = [...prev];
+                  updated[existing] = player;
+                  return updated;
+                }
+                return [...prev, player];
+              })(),
+            ),
+          );
         }
       })
       .subscribe((status) => {
@@ -1376,7 +1385,7 @@ export const [ChessProvider, useChess] = createContextHook(() => {
   }, [userLocation, currentUserId, fetchPlayerProfile, fetchUnreadCountByUser, profile, language]);
 
   const players = useMemo(() => {
-    return supabasePlayers.filter(p => !blockedUsers.includes(p.id));
+    return filterVisiblePlayers(supabasePlayers.filter((p) => !blockedUsers.includes(p.id)));
   }, [blockedUsers, supabasePlayers]);
 
   const nearbyPlayers = useMemo(() => {
@@ -1415,7 +1424,7 @@ export const [ChessProvider, useChess] = createContextHook(() => {
         const converted = nearbyProfiles.map((p: SupabaseProfile) =>
           supabaseProfileToPlayer(p, userLat, userLon)
         );
-        setSupabasePlayers(converted);
+        setSupabasePlayers(filterVisiblePlayers(converted));
         converted.forEach((p) => profileCacheRef.current.set(p.id, p));
 
         const twoMinAgo = new Date(Date.now() - 2 * 60 * 1000).toISOString();
@@ -1840,17 +1849,19 @@ export const [ChessProvider, useChess] = createContextHook(() => {
       profileCacheRef.current.delete(opponentId); // 次回取得で最新のマッチ数を反映
       // supabasePlayers 内の対戦相手も即時更新（他ユーザーのマッチ数が一覧に反映される）
       setSupabasePlayers((prev) =>
-        prev.map((p) =>
-          p.id !== opponentId
-            ? p
-            : {
-                ...p,
-                gamesPlayed: (opponentProfile?.games_played || 0) + 1,
-                wins: (opponentProfile?.wins || 0) + (opResult === 'win' ? 1 : 0),
-                losses: (opponentProfile?.losses || 0) + (opResult === 'loss' ? 1 : 0),
-                draws: (opponentProfile?.draws || 0) + (opResult === 'draw' ? 1 : 0),
-              }
-        )
+        filterVisiblePlayers(
+          prev.map((p) =>
+            p.id !== opponentId
+              ? p
+              : {
+                  ...p,
+                  gamesPlayed: (opponentProfile?.games_played || 0) + 1,
+                  wins: (opponentProfile?.wins || 0) + (opResult === 'win' ? 1 : 0),
+                  losses: (opponentProfile?.losses || 0) + (opResult === 'loss' ? 1 : 0),
+                  draws: (opponentProfile?.draws || 0) + (opResult === 'draw' ? 1 : 0),
+                },
+          ),
+        ),
       );
 
       console.log('Elo updated: Me', myRating, '->', myNewRating, '| Opponent', opponentRating, '->', opponentNewRating);
@@ -2591,8 +2602,10 @@ export const [ChessProvider, useChess] = createContextHook(() => {
         .in('id', [...ids]);
       const userLat = userLocation?.latitude;
       const userLon = userLocation?.longitude;
-      const list = filterOutTestProfiles(profiles ?? []).map((p: SupabaseProfile) =>
-        supabaseProfileToPlayer(p, userLat, userLon),
+      const list = filterVisiblePlayers(
+        filterOutTestProfiles(profiles ?? []).map((p: SupabaseProfile) =>
+          supabaseProfileToPlayer(p, userLat, userLon),
+        ),
       );
       setFavoritePlayers(list);
       await AsyncStorage.setItem(FAVORITES_CACHE_KEY, JSON.stringify(list));
@@ -2602,7 +2615,7 @@ export const [ChessProvider, useChess] = createContextHook(() => {
       try {
         const cached = await AsyncStorage.getItem(FAVORITES_CACHE_KEY);
         if (cached) {
-          const list = JSON.parse(cached) as Player[];
+          const list = filterVisiblePlayers(JSON.parse(cached) as Player[]);
           if (Array.isArray(list) && list.length > 0) {
             setFavoritePlayers(list);
             setFavoritePlayerIds(new Set(list.map((p) => p.id)));

@@ -35,7 +35,7 @@ import { ReportButton } from '@/components/ReportButton';
 import { t } from '@/utils/translations';
 import { supabase } from '@/utils/supabaseClient';
 import { resolveAvatarUrl } from '@/utils/avatarUrl';
-import { filterOutTestProfiles } from '@/utils/testUsers';
+import { filterOutTestProfiles, filterVisiblePlayers } from '@/utils/testUsers';
 
 type TabKey = 'all' | 'nearby' | 'online';
 type NearbyFilter = 'all' | '0.5' | '1' | '1.5';
@@ -286,8 +286,10 @@ export default function HomeScreen() {
       if (data) {
         const userLat = userLocation?.latitude;
         const userLon = userLocation?.longitude;
-        const mapped = filterOutTestProfiles(data as SupabaseProfile[]).map(p =>
-          mapProfile(p, userLat, userLon),
+        const mapped = filterVisiblePlayers(
+          filterOutTestProfiles(data as SupabaseProfile[]).map((p) =>
+            mapProfile(p, userLat, userLon),
+          ),
         );
         setPlayers(mapped);
       }

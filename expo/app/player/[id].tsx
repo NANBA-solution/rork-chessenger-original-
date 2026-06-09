@@ -45,6 +45,7 @@ import { translateText, getTargetLanguage, decodeForDisplay, onTranslationComple
 import { BackNavButton } from '@/components/BackNavButton';
 import { ReportButton } from '@/components/ReportButton';
 import { PlayStyle } from '@/types';
+import { isTestDisplayName } from '@/utils/testUsers';
 
 const TIME_CONTROLS = ['5+0', '10+0', '15+10', '30+0', '60+30'];
 
@@ -81,10 +82,12 @@ export default function PlayerDetailScreen() {
   const sentAnim = useRef(new Animated.Value(0)).current;
 
   const playerFromList = useMemo(() => players.find(p => p.id === id), [players, id]);
-  // 常に最新取得を優先（キャッシュ干渉を避け、マッチ数を確実に表示）
-  const player = fetchedPlayer ?? playerFromList;
+  const player = useMemo(() => {
+    const candidate = fetchedPlayer ?? playerFromList;
+    if (!candidate || isTestDisplayName(candidate.name)) return null;
+    return candidate;
+  }, [fetchedPlayer, playerFromList]);
 
-  // 常に bypassCache で最新プロフィールを取得（リストにいてもマッチ数が古い可能性があるため）
   useEffect(() => {
     if (!id) {
       setFetchedPlayer(null);
@@ -94,11 +97,18 @@ export default function PlayerDetailScreen() {
     setFetchingPlayer(true);
     fetchPlayerProfile(id, { bypassCache: true })
       .then((p) => {
-        if (mounted && p) setFetchedPlayer(p);
+        if (!mounted) return;
+        setFetchedPlayer(p);
       })
       .finally(() => { if (mounted) setFetchingPlayer(false); });
     return () => { mounted = false; };
   }, [id, fetchPlayerProfile]);
+
+  useEffect(() => {
+    if (!fetchingPlayer && id && !player) {
+      router.replace('/search');
+    }
+  }, [fetchingPlayer, id, player, router]);
   const playerBlocked = useMemo(() => (id ? isUserBlocked(id) : false), [id, isUserBlocked]);
   const isFavorite = useMemo(() => (id ? favoritePlayerIds.has(id) : false), [id, favoritePlayerIds]);
 

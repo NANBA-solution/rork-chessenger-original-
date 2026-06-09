@@ -7,6 +7,7 @@ import { supabase, supabaseNoAuth, clearStaleSession, probeSupabaseConnectivity,
 import { AuthUser } from '@/types';
 import { registerForPushNotificationsAsync, savePushTokenToSupabase } from '@/utils/notifications';
 import { resetOnboarding } from '@/utils/onboardingStorage';
+import { getTestRegistrationBlockReason } from '@/utils/testUsers';
 
 const AUTH_KEY = 'chess_auth_user';
 const SESSION_STARTED_KEY = 'chess_session_started_at';
@@ -412,6 +413,11 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
       }
 
       const trimmedName = name.trim();
+
+      const testBlock = getTestRegistrationBlockReason(normalizedEmail, trimmedName);
+      if (testBlock) {
+        return { success: false, error: testBlock };
+      }
 
       const probe = await probeSupabaseConnectivity();
       if (!probe.ok) {
