@@ -38,6 +38,7 @@ import { useChess } from '@/providers/ChessProvider';
 import { Player } from '@/types';
 import { supabase } from '@/utils/supabaseClient';
 import { resolveAvatarUrl } from '@/utils/avatarUrl';
+import { filterOutTestProfiles } from '@/utils/testUsers';
 import { getCountryFlag, getCountryName } from '@/utils/translations';
 import { ReportButton } from '@/components/ReportButton';
 
@@ -129,18 +130,19 @@ function useDiscoverProfiles(currentUserId: string | undefined) {
     try {
       const { data: profileRows, error: profileErr } = await supabase
         .from('profiles_with_match_stats')
-        .select('id, name, avatar, location, country, skill_level, rating, chess_com_rating, play_styles, preferred_time_control, bio, games_played, wins, losses, draws')
+        .select('id, name, email, avatar, location, country, skill_level, rating, chess_com_rating, play_styles, preferred_time_control, bio, games_played, wins, losses, draws')
         .neq('id', currentUserId)
         .limit(30);
 
       if (profileErr) throw profileErr;
 
-      if (!profileRows?.length) {
+      const visibleRows = filterOutTestProfiles(profileRows ?? []);
+      if (!visibleRows.length) {
         setProfiles([]);
         return;
       }
 
-      const shuffled: DiscoverProfile[] = profileRows
+      const shuffled: DiscoverProfile[] = visibleRows
         .map((r: Record<string, unknown>) => ({
             id: r.id as string,
             name: (r.name as string) ?? 'Unknown',
