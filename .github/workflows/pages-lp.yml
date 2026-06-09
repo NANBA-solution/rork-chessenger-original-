@@ -1,11 +1,7 @@
 name: Deploy LP (GitHub Pages)
 
+# LP は Vercel で公開（lp-five-eta.vercel.app）。GitHub Pages 未設定のため push では走らせない。
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'lp/**'
-      - '.github/workflows/pages-lp.yml'
   workflow_dispatch:
 
 permissions:
