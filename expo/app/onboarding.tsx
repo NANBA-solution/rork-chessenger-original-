@@ -69,7 +69,7 @@ function formatError(e: unknown): string {
 }
 
 export default function OnboardingScreen() {
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
   const { language, toggleLanguage } = useChess();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -134,17 +134,6 @@ export default function OnboardingScreen() {
     <View style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
 
-      <LinearGradient
-        pointerEvents="none"
-        colors={
-          isDark
-            ? [colors.background, colors.surface, colors.background]
-            : [colors.background, colors.surfaceLight, colors.background]
-        }
-        locations={[0, 0.55, 1]}
-        style={StyleSheet.absoluteFill}
-      />
-
       <View style={styles.topBar}>
         <View style={styles.brandRow}>
           <Image
@@ -177,13 +166,12 @@ export default function OnboardingScreen() {
         {SLIDES.map((slide, i) => (
           <View key={i} style={styles.slide}>
             <View style={styles.imageFrame}>
-              <View style={styles.mintGlow} />
               <Image
                 source={slide.image}
                 style={styles.slideImage}
                 contentFit="contain"
                 transition={200}
-                backgroundColor="transparent"
+                backgroundColor={colors.background}
               />
             </View>
 
@@ -242,12 +230,6 @@ export default function OnboardingScreen() {
 }
 
 function createStyles(colors: ThemeColors, topInset: number) {
-  const cardShadow = Platform.select({
-    ios: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 12 }, shadowOpacity: 0.08, shadowRadius: 24 },
-    android: { elevation: 4 },
-    web: { boxShadow: '0 12px 40px rgba(15,23,42,0.08)' } as object,
-  });
-
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background },
     topBar: {
@@ -310,23 +292,10 @@ function createStyles(colors: ThemeColors, topInset: number) {
     },
     imageFrame: {
       height: IMAGE_HEIGHT,
-      borderRadius: 28,
-      overflow: 'hidden',
       marginTop: 4,
       backgroundColor: colors.background,
-      borderWidth: 1,
-      borderColor: colors.cardBorder,
-      ...cardShadow,
-    },
-    mintGlow: {
-      position: 'absolute',
-      top: '18%',
-      left: '15%',
-      right: '15%',
-      height: '50%',
-      borderRadius: 999,
-      backgroundColor: colors.green,
-      opacity: 0.08,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     slideImage: {
       width: '100%',
@@ -374,7 +343,7 @@ function createStyles(colors: ThemeColors, topInset: number) {
       width: 7,
       height: 7,
       borderRadius: 4,
-      backgroundColor: 'rgba(15,23,42,0.12)',
+      backgroundColor: colors.divider,
     },
     dotActive: {
       width: 28,
