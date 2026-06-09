@@ -19,6 +19,7 @@ import {
   notifyTimelineComment,
 } from '@/utils/notifications';
 import { playMessageNotificationSound } from '@/utils/messageNotificationSound';
+import { filterOutTestProfiles, isTestProfile } from '@/utils/testUsers';
 
 const LANGUAGE_KEY = 'chess_language';
 const EVENT_CACHE_KEY = 'chess_event_cache';
@@ -500,7 +501,7 @@ export const [ChessProvider, useChess] = createContextHook(() => {
         console.warn('ChessProvider: buildTimelinePosts profiles_with_match_stats batch error', batchErr.code, batchErr.message);
       }
       if (profiles) {
-        profiles.forEach((p: SupabaseProfile) => {
+        filterOutTestProfiles(profiles as SupabaseProfile[]).forEach((p: SupabaseProfile) => {
           const player = supabaseProfileToPlayer(p, userLocation?.latitude, userLocation?.longitude);
           profileMap.set(p.id, player);
           profileCacheRef.current.set(p.id, player);
@@ -763,7 +764,8 @@ export const [ChessProvider, useChess] = createContextHook(() => {
         if (profileRows && !nearbyError && profileRows.length > 0) {
           const userLat = userLocation?.latitude;
           const userLon = userLocation?.longitude;
-          const converted = (profileRows as SupabaseProfile[]).map((p) =>
+          const visibleProfiles = filterOutTestProfiles(profileRows as SupabaseProfile[]);
+          const converted = visibleProfiles.map((p) =>
             supabaseProfileToPlayer(p, userLat, userLon)
           );
           setSupabasePlayers(converted);
@@ -771,7 +773,7 @@ export const [ChessProvider, useChess] = createContextHook(() => {
           console.log('ChessProvider: Loaded', converted.length, 'players from Supabase');
 
           const twoMinAgo = new Date(Date.now() - 2 * 60 * 1000).toISOString();
-          const activeCount = nearbyProfiles.filter((p: SupabaseProfile) =>
+          const activeCount = visibleProfiles.filter((p: SupabaseProfile) =>
             p.last_seen && p.last_seen > twoMinAgo
           ).length;
           setActiveUsersCount(activeCount + 1);
@@ -1224,6 +1226,7 @@ export const [ChessProvider, useChess] = createContextHook(() => {
         console.log('Realtime: Profile change received', payload.eventType);
         if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
           const newProfile = payload.new as SupabaseProfile;
+          if (isTestProfile(newProfile)) return;
 
           if (currentUserId && newProfile.id === currentUserId) {
             setProfile(prev => ({
@@ -1396,11 +1399,14 @@ export const [ChessProvider, useChess] = createContextHook(() => {
         return;
       }
       if (profileRows && profileRows.length > 0) {
+        const visibleRows = filterOutTestProfiles(
+          profileRows as Array<{ id: string; email?: string | null } & Record<string, unknown>>,
+        );
         const statsMap = await fetchProfileMatchStatsBatch(
           supabaseNoAuth,
-          profileRows as Array<{ id: string } & Record<string, unknown>>,
+          visibleRows as Array<{ id: string } & Record<string, unknown>>,
         );
-        const nearbyProfiles: SupabaseProfile[] = profileRows.map((p: Record<string, unknown>) => {
+        const nearbyProfiles: SupabaseProfile[] = visibleRows.map((p: Record<string, unknown>) => {
           const s = statsMap.get(p.id as string) ?? { games_played: 0, wins: 0, losses: 0, draws: 0 };
           return { ...p, games_played: s.games_played, wins: s.wins, losses: s.losses, draws: s.draws } as SupabaseProfile;
         });
@@ -2585,7 +2591,9 @@ export const [ChessProvider, useChess] = createContextHook(() => {
         .in('id', [...ids]);
       const userLat = userLocation?.latitude;
       const userLon = userLocation?.longitude;
-      const list = (profiles ?? []).map((p: SupabaseProfile) => supabaseProfileToPlayer(p, userLat, userLon));
+      const list = filterOutTestProfiles(profiles ?? []).map((p: SupabaseProfile) =>
+        supabaseProfileToPlayer(p, userLat, userLon),
+      );
       setFavoritePlayers(list);
       await AsyncStorage.setItem(FAVORITES_CACHE_KEY, JSON.stringify(list));
     } catch (e) {

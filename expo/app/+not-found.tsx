@@ -1,76 +1,29 @@
-import { Link, Redirect, Stack, useRouter } from "expo-router";
-import { useMemo } from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { ThemeColors } from "@/constants/colors";
-import { useTheme } from "@/providers/ThemeProvider";
-import { useChess } from "@/providers/ChessProvider";
-import { BackNavButton } from "@/components/BackNavButton";
+import { Redirect, useRootNavigationState } from "expo-router";
+import { ActivityIndicator, View } from "react-native";
+import { useAuth } from "@/providers/AuthProvider";
 import { useIsAuthenticated } from "@/hooks/useIsAuthenticated";
 import { HOME_HREF } from "@/utils/authRouting";
-import { t } from "@/utils/translations";
 
+/**
+ * 無効ルートに到達しても 404 UI は出さず、起動完了後に正しい画面へ戻す。
+ */
 export default function NotFoundScreen() {
-  const { colors } = useTheme();
-  const { language } = useChess();
+  const auth = useAuth();
+  const rootState = useRootNavigationState();
   const isAuthenticated = useIsAuthenticated();
-  const styles = useMemo(() => createStyles(colors), [colors]);
-  const router = useRouter();
-  const title = t('page_not_found', language);
-  const backLabel = t('back_to_home', language);
-  const homeHref = isAuthenticated ? HOME_HREF : '/';
 
-  if (isAuthenticated) {
-    return <Redirect href={HOME_HREF} />;
+  const booting =
+    !rootState?.key ||
+    (auth?.isLoading ?? true) ||
+    !(auth?.authBootstrapped ?? false);
+
+  if (booting) {
+    return (
+      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+        <ActivityIndicator size="large" color="#7C3AED" />
+      </View>
+    );
   }
 
-  return (
-    <>
-      <Stack.Screen
-        options={{
-          title,
-          headerLeft: () => <BackNavButton onPress={() => router.back()} />,
-        }}
-      />
-      <View style={styles.container}>
-        <Text style={styles.icon}>♟</Text>
-        <Text style={styles.title}>{title}</Text>
-        <Link href={homeHref} style={styles.link}>
-          <Text style={styles.linkText}>{backLabel}</Text>
-        </Link>
-      </View>
-    </>
-  );
-}
-
-function createStyles(colors: ThemeColors) {
-  return StyleSheet.create({
-    container: {
-      flex: 1,
-      alignItems: "center",
-      justifyContent: "center",
-      padding: 20,
-      backgroundColor: colors.background,
-    },
-    icon: {
-      fontSize: 48,
-      marginBottom: 16,
-    },
-    title: {
-      fontSize: 18,
-      fontWeight: "600" as const,
-      color: colors.textPrimary,
-    },
-    link: {
-      marginTop: 20,
-      paddingVertical: 12,
-      paddingHorizontal: 24,
-      backgroundColor: colors.goldMuted,
-      borderRadius: 10,
-    },
-    linkText: {
-      fontSize: 14,
-      color: colors.gold,
-      fontWeight: "600" as const,
-    },
-  });
+  return <Redirect href={isAuthenticated ? HOME_HREF : "/"} />;
 }

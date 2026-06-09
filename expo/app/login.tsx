@@ -24,7 +24,7 @@ import { useAuth } from '@/providers/AuthProvider';
 import { useChess } from '@/providers/ChessProvider';
 import { t } from '@/utils/translations';
 import { primeAudioForApp, playLoginSuccessSound } from '@/utils/messageNotificationSound';
-import { HOME_HREF, isSignupMode } from '@/utils/authRouting';
+import { isSignupMode } from '@/utils/authRouting';
 import { GuestBootRedirect } from '@/components/GuestBootRedirect';
 import { useIsAuthenticated } from '@/hooks/useIsAuthenticated';
 import { getSupabaseHostForDebug, isSupabaseConfigured } from '@/utils/supabaseClient';
@@ -262,10 +262,10 @@ export default function LoginScreen() {
   }, []);
 
   useEffect(() => {
-    if (!authPending || !isAuthenticated) return;
-    setAuthPending(false);
-    router.replace(HOME_HREF as any);
-  }, [authPending, isAuthenticated, router]);
+    if (authPending && isAuthenticated) {
+      setAuthPending(false);
+    }
+  }, [authPending, isAuthenticated]);
 
   const handleSubmit = useCallback(async () => {
     if (loading) return;

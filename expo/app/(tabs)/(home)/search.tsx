@@ -35,6 +35,7 @@ import { ReportButton } from '@/components/ReportButton';
 import { t } from '@/utils/translations';
 import { supabase } from '@/utils/supabaseClient';
 import { resolveAvatarUrl } from '@/utils/avatarUrl';
+import { filterOutTestProfiles } from '@/utils/testUsers';
 
 type TabKey = 'all' | 'nearby' | 'online';
 type NearbyFilter = 'all' | '0.5' | '1' | '1.5';
@@ -42,6 +43,7 @@ type NearbyFilter = 'all' | '0.5' | '1' | '1.5';
 interface SupabaseProfile {
   id: string;
   name?: string;
+  email?: string | null;
   avatar?: string;
   bio?: string;
   rating?: number;
@@ -284,7 +286,9 @@ export default function HomeScreen() {
       if (data) {
         const userLat = userLocation?.latitude;
         const userLon = userLocation?.longitude;
-        const mapped = (data as SupabaseProfile[]).map(p => mapProfile(p, userLat, userLon));
+        const mapped = filterOutTestProfiles(data as SupabaseProfile[]).map(p =>
+          mapProfile(p, userLat, userLon),
+        );
         setPlayers(mapped);
       }
     } catch (e) {
