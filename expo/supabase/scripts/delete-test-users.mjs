@@ -30,13 +30,26 @@ if (!url || !serviceKey) {
   process.exit(1);
 }
 
-const TEST_EMAIL_RE = /^test-\d+@example\.com$/i;
+const REVIEW_DEMO_EMAIL = 'chessenger.co.ltd@gmail.com';
+const DISPOSABLE_EMAIL_RES = [
+  /^test-\d+@example\.com$/i,
+  /^t@t\.com$/i,
+  /@example\.com$/i,
+  /@test\.com$/i,
+  /^test@/i,
+];
+
+function isDisposableEmail(email) {
+  if (!email) return false;
+  if (email.toLowerCase() === REVIEW_DEMO_EMAIL) return false;
+  return DISPOSABLE_EMAIL_RES.some((re) => re.test(email));
+}
 
 const admin = createClient(url, serviceKey, { auth: { persistSession: false } });
 
 let page = 1;
 const perPage = 200;
-const toDelete = [];
+const toDelete = new Map();
 
 while (true) {
   const { data, error } = await admin.auth.admin.listUsers({ page, perPage });
@@ -45,21 +58,37 @@ while (true) {
     process.exit(1);
   }
   for (const u of data.users) {
-    if (u.email && TEST_EMAIL_RE.test(u.email)) toDelete.push(u);
+    if (u.email && isDisposableEmail(u.email)) toDelete.set(u.id, u);
   }
   if (data.users.length < perPage) break;
   page += 1;
 }
 
-if (toDelete.length === 0) {
-  console.log('削除対象のテストユーザーはありません（test-*@example.com）');
+const { data: testNameRows, error: profileErr } = await admin
+  .from('profiles')
+  .select('id, name, email')
+  .ilike('name', 'test');
+if (profileErr) {
+  console.error('profiles query failed:', profileErr.message);
+  process.exit(1);
+}
+for (const row of testNameRows ?? []) {
+  if ((row.email ?? '').toLowerCase() === REVIEW_DEMO_EMAIL) continue;
+  if ((row.name ?? '').trim().toLowerCase() === 'test') {
+    toDelete.set(row.id, { id: row.id, email: row.email ?? `(name=Test ${row.id})` });
+  }
+}
+
+const targets = [...toDelete.values()];
+if (targets.length === 0) {
+  console.log('削除対象のテストユーザーはありません');
   process.exit(0);
 }
 
-console.log(`削除対象 ${toDelete.length} 件:`);
-for (const u of toDelete) console.log(' -', u.email, u.id);
+console.log(`削除対象 ${targets.length} 件:`);
+for (const u of targets) console.log(' -', u.email, u.id);
 
-for (const u of toDelete) {
+for (const u of targets) {
   const { error } = await admin.auth.admin.deleteUser(u.id);
   if (error) {
     console.error('削除失敗', u.email, error.message);
