@@ -30,6 +30,67 @@ const IMAGE_HEIGHT = Math.min(SH * 0.46, 380);
 const MINT = '#6EE7B7';
 const MINT_DARK = '#34D399';
 
+interface SlideGradient {
+  colors: readonly [string, string, ...string[]];
+  locations: readonly [number, number, ...number[]];
+  start: { x: number; y: number };
+  end: { x: number; y: number };
+}
+
+const SLIDE_GRADIENTS_LIGHT: SlideGradient[] = [
+  {
+    colors: ['#ECFDF5', '#A7F3D0', '#EDE9FE'],
+    locations: [0, 0.5, 1],
+    start: { x: 0, y: 0 },
+    end: { x: 1, y: 1 },
+  },
+  {
+    colors: ['#EDE9FE', '#C4B5FD', '#D1FAE5'],
+    locations: [0, 0.45, 1],
+    start: { x: 0.15, y: 0 },
+    end: { x: 0.85, y: 1 },
+  },
+  {
+    colors: ['#FEF9C3', '#FDE68A', '#BBF7D0'],
+    locations: [0, 0.4, 1],
+    start: { x: 1, y: 0 },
+    end: { x: 0, y: 1 },
+  },
+  {
+    colors: ['#E0E7FF', '#A5B4FC', '#6EE7B7'],
+    locations: [0, 0.55, 1],
+    start: { x: 0, y: 1 },
+    end: { x: 1, y: 0 },
+  },
+];
+
+const SLIDE_GRADIENTS_DARK: SlideGradient[] = [
+  {
+    colors: ['#0C1F17', '#134E35', '#1E1B3A'],
+    locations: [0, 0.5, 1],
+    start: { x: 0, y: 0 },
+    end: { x: 1, y: 1 },
+  },
+  {
+    colors: ['#1A1530', '#312E81', '#0F2A22'],
+    locations: [0, 0.45, 1],
+    start: { x: 0.15, y: 0 },
+    end: { x: 0.85, y: 1 },
+  },
+  {
+    colors: ['#1C1910', '#422006', '#0F2A22'],
+    locations: [0, 0.4, 1],
+    start: { x: 1, y: 0 },
+    end: { x: 0, y: 1 },
+  },
+  {
+    colors: ['#12102A', '#3730A3', '#064E3B'],
+    locations: [0, 0.55, 1],
+    start: { x: 0, y: 1 },
+    end: { x: 1, y: 0 },
+  },
+];
+
 interface SlideConfig {
   image: ImageSource;
   titleKey: string;
@@ -69,7 +130,7 @@ function formatError(e: unknown): string {
 }
 
 export default function OnboardingScreen() {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const { language, toggleLanguage } = useChess();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -80,7 +141,8 @@ export default function OnboardingScreen() {
   const scrollRef = useRef<ScrollView>(null);
   const [page, setPage] = useState(0);
   const [finishing, setFinishing] = useState(false);
-  const styles = useMemo(() => createStyles(colors, insets.top), [colors, insets.top]);
+  const slideGradients = isDark ? SLIDE_GRADIENTS_DARK : SLIDE_GRADIENTS_LIGHT;
+  const styles = useMemo(() => createStyles(colors, insets.top, isDark), [colors, insets.top, isDark]);
 
   const isLast = page === SLIDES.length - 1;
 
@@ -163,16 +225,37 @@ export default function OnboardingScreen() {
         style={styles.pager}
         contentContainerStyle={styles.pagerContent}
       >
-        {SLIDES.map((slide, i) => (
+        {SLIDES.map((slide, i) => {
+          const gradient = slideGradients[i] ?? slideGradients[0];
+          return (
           <View key={i} style={styles.slide}>
             <View style={styles.imageFrame}>
-              <Image
-                source={slide.image}
-                style={styles.slideImage}
-                contentFit="contain"
-                transition={200}
-                backgroundColor={colors.background}
-              />
+              <LinearGradient
+                colors={gradient.colors}
+                locations={gradient.locations}
+                start={gradient.start}
+                end={gradient.end}
+                style={styles.imageGradient}
+              >
+                <LinearGradient
+                  colors={
+                    isDark
+                      ? ['rgba(255,255,255,0.12)', 'transparent', 'rgba(0,0,0,0.15)']
+                      : ['rgba(255,255,255,0.55)', 'transparent', 'rgba(255,255,255,0.12)']
+                  }
+                  locations={[0, 0.45, 1]}
+                  start={{ x: 0.5, y: 0 }}
+                  end={{ x: 0.5, y: 1 }}
+                  style={styles.imageSheen}
+                  pointerEvents="none"
+                />
+                <Image
+                  source={slide.image}
+                  style={styles.slideImage}
+                  contentFit="contain"
+                  transition={200}
+                />
+              </LinearGradient>
             </View>
 
             <View style={styles.copyCard}>
@@ -183,7 +266,8 @@ export default function OnboardingScreen() {
               <Text style={styles.slideDesc}>{t(slide.descKey, language)}</Text>
             </View>
           </View>
-        ))}
+          );
+        })}
       </ScrollView>
 
       <View style={styles.footer}>
@@ -229,7 +313,7 @@ export default function OnboardingScreen() {
   );
 }
 
-function createStyles(colors: ThemeColors, topInset: number) {
+function createStyles(colors: ThemeColors, topInset: number, isDark: boolean) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background },
     topBar: {
@@ -293,13 +377,38 @@ function createStyles(colors: ThemeColors, topInset: number) {
     imageFrame: {
       height: IMAGE_HEIGHT,
       marginTop: 4,
-      backgroundColor: colors.background,
+      borderRadius: 28,
+      overflow: 'hidden',
+      ...Platform.select({
+        ios: {
+          shadowColor: isDark ? '#6EE7B7' : '#7C3AED',
+          shadowOffset: { width: 0, height: 12 },
+          shadowOpacity: isDark ? 0.22 : 0.14,
+          shadowRadius: 24,
+        },
+        android: { elevation: 8 },
+        web: {
+          boxShadow: isDark
+            ? '0 12px 32px rgba(110,231,183,0.18)'
+            : '0 12px 32px rgba(124,58,237,0.12)',
+        } as object,
+      }),
+    },
+    imageGradient: {
+      flex: 1,
       alignItems: 'center',
       justifyContent: 'center',
+      borderRadius: 28,
+      borderWidth: 1,
+      borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.72)',
+    },
+    imageSheen: {
+      ...StyleSheet.absoluteFillObject,
+      borderRadius: 28,
     },
     slideImage: {
-      width: '100%',
-      height: '100%',
+      width: '90%',
+      height: '86%',
     },
     copyCard: {
       flex: 1,
