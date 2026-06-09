@@ -3,12 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Chessenger — 近くのチェス仲間を見つけて、対面で対局。スキルやスタイルで相手を探し、メッセージで調整して実際に会ってプレイできます。" />
-  <title>Chessenger — 近くのチェス仲間を見つけよう</title>
+  <meta name="description" content="" />
+  <title>Chessenger</title>
   <link rel="icon" href="assets/app-icon.png" />
   <link rel="stylesheet" href="styles.css" />
+  <script src="i18n.js" defer></script>
 </head>
-<body>
+<body data-page="index">
   <header class="site-header">
     <div class="inner">
       <a class="brand" href="index.html">
@@ -16,9 +17,10 @@
         Chessenger
       </a>
       <nav class="nav">
-        <a href="#features">機能</a>
-        <a href="support.html">サポート</a>
-        <a class="nav-cta" href="https://apps.apple.com/" target="_blank" rel="noopener">入手</a>
+        <a href="#features" data-i18n="nav.features">機能</a>
+        <a href="support.html" data-i18n="nav.support">サポート</a>
+        <button type="button" class="lang-toggle" data-lang-toggle data-i18n="lang.switch">EN</button>
+        <a class="nav-cta" href="https://apps.apple.com/" target="_blank" rel="noopener" data-i18n="nav.get">入手</a>
       </nav>
     </div>
   </header>
@@ -31,14 +33,14 @@
 
     <section class="container hero">
       <div>
-        <div class="eyebrow">♟ 対面チェスマッチング</div>
-        <h1>近くのチェス仲間を<br /><em>見つけて、対局</em></h1>
-        <p class="lead">
-          スキルやプレイスタイルで相手を探して、メッセージで日程を調整。
-          実際に会ってチェスを楽しめる、プレイヤー向けアプリです。
-        </p>
+        <div class="eyebrow" data-i18n="hero.eyebrow">♟ 対面チェスマッチング</div>
+        <h1>
+          <span data-i18n="hero.title">近くのチェス仲間を</span><br />
+          <em data-i18n="hero.titleAccent">見つけて、対局</em>
+        </h1>
+        <p class="lead" data-i18n="hero.lead">スキルやプレイスタイルで相手を探して、メッセージで日程を調整。</p>
         <div class="cta-row">
-          <a class="btn btn-primary" href="https://apps.apple.com/" target="_blank" rel="noopener">
+          <a class="btn btn-primary" href="https://apps.apple.com/" target="_blank" rel="noopener" data-i18n="hero.cta">
             App Store で入手
           </a>
         </div>
@@ -51,33 +53,33 @@
 
   <section class="section" id="features">
     <div class="container section-head">
-      <p class="section-label">Features</p>
+      <p class="section-label" data-i18n="section.featuresLabel">Features</p>
       <div class="section-title">
-        <h2>対面チェスに必要なこと、これひとつ</h2>
-        <p>探す・つながる・対局する。シンプルな流れで、すぐに始められます。</p>
+        <h2 data-i18n="section.featuresTitle">対面チェスに必要なこと、これひとつ</h2>
+        <p data-i18n="section.featuresDesc">探す・つながる・対局する。</p>
       </div>
     </div>
 
     <div class="container bento">
       <article class="bento-card span-7">
         <div class="bento-icon purple">🔍</div>
-        <h3>プレイヤーを探す</h3>
-        <p>スキルレベルやプレイスタイルで絞り込み。オンライン・近くのプレイヤーも一目でわかります。</p>
+        <h3 data-i18n="feature.1.title">プレイヤーを探す</h3>
+        <p data-i18n="feature.1.desc">スキルレベルやプレイスタイルで絞り込み。</p>
       </article>
       <article class="bento-card span-5">
         <div class="bento-icon green">📍</div>
-        <h3>マップで近くを確認</h3>
-        <p>位置情報をオンにすれば、近くにいるプレイヤーをマップ上で確認できます（任意）。</p>
+        <h3 data-i18n="feature.2.title">マップで近くを確認</h3>
+        <p data-i18n="feature.2.desc">位置情報をオンにすれば、近くのプレイヤーを確認できます。</p>
       </article>
       <article class="bento-card span-4">
         <div class="bento-icon purple">♟</div>
-        <h3>対局リクエスト</h3>
-        <p>プロフィールから持ち時間を選んで送信。相手が承諾すれば対局確定です。</p>
+        <h3 data-i18n="feature.3.title">対局リクエスト</h3>
+        <p data-i18n="feature.3.desc">プロフィールから持ち時間を選んで送信。</p>
       </article>
       <article class="bento-card span-8">
         <div class="bento-icon green">💬</div>
-        <h3>メッセージ &amp; タイムライン</h3>
-        <p>対局の調整はメッセージで。タイムラインでコミュニティの動きもチェックできます。対局後は結果報告や評価も。</p>
+        <h3 data-i18n="feature.4.title">メッセージ &amp; タイムライン</h3>
+        <p data-i18n="feature.4.desc">対局の調整はメッセージで。</p>
       </article>
       <div class="bento-visual">
         <img src="assets/slide-welcome.png" alt="" loading="lazy" />
@@ -89,18 +91,18 @@
   </section>
 
   <section class="cta-band">
-    <h2>チェス仲間、探しにいこう</h2>
-    <p>iPhone 向けアプリ。今すぐダウンロード。</p>
-    <a class="btn btn-primary" href="https://apps.apple.com/" target="_blank" rel="noopener">App Store で入手</a>
+    <h2 data-i18n="cta.title">チェス仲間、探しにいこう</h2>
+    <p data-i18n="cta.desc">iPhone 向けアプリ。</p>
+    <a class="btn btn-primary" href="https://apps.apple.com/" target="_blank" rel="noopener" data-i18n="cta.btn">App Store で入手</a>
   </section>
 
   <footer class="site-footer">
     <div class="container footer-grid">
-      <div class="footer-brand">© 2025 Chessenger</div>
+      <div class="footer-brand" data-i18n="footer.copy">© 2025 Chessenger</div>
       <div class="footer-links">
-        <a href="privacy.html">プライバシー</a>
-        <a href="terms.html">利用規約</a>
-        <a href="support.html">サポート</a>
+        <a href="privacy.html" data-i18n="nav.privacy">プライバシー</a>
+        <a href="terms.html" data-i18n="nav.terms">利用規約</a>
+        <a href="support.html" data-i18n="nav.support">サポート</a>
       </div>
     </div>
   </footer>

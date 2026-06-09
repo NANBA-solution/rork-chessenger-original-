@@ -3,12 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Chessenger サポート・お問い合わせ" />
-  <title>サポート — Chessenger</title>
+  <meta name="description" content="" />
+  <title>Support — Chessenger</title>
   <link rel="icon" href="assets/app-icon.png" />
   <link rel="stylesheet" href="styles.css" />
+  <script src="i18n.js" defer></script>
 </head>
-<body>
+<body data-page="support">
   <header class="site-header">
     <div class="inner">
       <a class="brand" href="index.html">
@@ -16,51 +17,52 @@
         Chessenger
       </a>
       <nav class="nav">
-        <a href="index.html">トップ</a>
-        <a href="privacy.html">プライバシー</a>
-        <a class="nav-cta" href="mailto:chessenger.co.ltd@gmail.com">連絡する</a>
+        <a href="index.html" data-i18n="nav.home">トップ</a>
+        <a href="privacy.html" data-i18n="nav.privacy">プライバシー</a>
+        <button type="button" class="lang-toggle" data-lang-toggle data-i18n="lang.switch">EN</button>
+        <a class="nav-cta" href="mailto:chessenger.co.ltd@gmail.com" data-i18n="nav.contact">連絡する</a>
       </nav>
     </div>
   </header>
 
   <main class="container legal-page">
-    <p class="section-label">Support</p>
-    <h1>サポート</h1>
-    <p class="legal-meta">よくある質問とお問い合わせ先です。</p>
+    <p class="section-label" data-i18n="label.support">Support</p>
+    <h1 data-i18n="support.title">サポート</h1>
+    <p class="legal-meta" data-i18n="support.meta">よくある質問とお問い合わせ先です。</p>
 
     <div class="faq-list">
       <article class="faq-item">
-        <h3>Chessenger とは？</h3>
-        <p>対面でチェスを楽しみたいプレイヤー同士をマッチングするアプリです。</p>
+        <h3 data-i18n="support.faq1.q">Chessenger とは？</h3>
+        <p data-i18n="support.faq1.a"></p>
       </article>
       <article class="faq-item">
-        <h3>対局リクエストの送り方</h3>
-        <p>プレイヤーのプロフィールから「対局リクエスト」をタップし、持ち時間を選んで送信します。</p>
+        <h3 data-i18n="support.faq2.q">対局リクエストの送り方</h3>
+        <p data-i18n="support.faq2.a"></p>
       </article>
       <article class="faq-item">
-        <h3>位置情報は必須？</h3>
-        <p>任意です。設定からいつでもオン・オフできます。</p>
+        <h3 data-i18n="support.faq3.q">位置情報は必須？</h3>
+        <p data-i18n="support.faq3.a"></p>
       </article>
       <article class="faq-item">
-        <h3>アカウントの削除</h3>
-        <p>アプリ内の設定画面からいつでもアカウントを削除できます。</p>
+        <h3 data-i18n="support.faq4.q">アカウントの削除</h3>
+        <p data-i18n="support.faq4.a"></p>
       </article>
     </div>
 
     <div class="contact-card">
-      <h2>お問い合わせ</h2>
-      <p>不具合の報告・通報はこちらからお願いします。</p>
-      <a class="btn btn-primary" href="mailto:chessenger.co.ltd@gmail.com">メールで連絡する</a>
+      <h2 data-i18n="support.contact.title">お問い合わせ</h2>
+      <p data-i18n="support.contact.desc">不具合の報告・通報はこちらからお願いします。</p>
+      <a class="btn btn-primary" href="mailto:chessenger.co.ltd@gmail.com" data-i18n="support.contact.btn">メールで連絡する</a>
     </div>
   </main>
 
   <footer class="site-footer">
     <div class="container footer-grid">
-      <div class="footer-brand">© 2025 Chessenger</div>
+      <div class="footer-brand" data-i18n="footer.copy">© 2025 Chessenger</div>
       <div class="footer-links">
-        <a href="index.html">トップ</a>
-        <a href="privacy.html">プライバシー</a>
-        <a href="terms.html">利用規約</a>
+        <a href="index.html" data-i18n="nav.home">トップ</a>
+        <a href="privacy.html" data-i18n="nav.privacy">プライバシー</a>
+        <a href="terms.html" data-i18n="nav.terms">利用規約</a>
       </div>
     </div>
   </footer>

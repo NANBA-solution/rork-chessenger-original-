@@ -3,12 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Chessenger 利用規約" />
-  <title>利用規約 — Chessenger</title>
+  <meta name="description" content="" />
+  <title>Terms — Chessenger</title>
   <link rel="icon" href="assets/app-icon.png" />
   <link rel="stylesheet" href="styles.css" />
+  <script src="i18n.js" defer></script>
 </head>
-<body>
+<body data-page="terms">
   <header class="site-header">
     <div class="inner">
       <a class="brand" href="index.html">
@@ -16,67 +17,56 @@
         Chessenger
       </a>
       <nav class="nav">
-        <a href="index.html">トップ</a>
-        <a href="privacy.html">プライバシー</a>
-        <a href="support.html">サポート</a>
+        <a href="index.html" data-i18n="nav.home">トップ</a>
+        <a href="privacy.html" data-i18n="nav.privacy">プライバシー</a>
+        <button type="button" class="lang-toggle" data-lang-toggle data-i18n="lang.switch">EN</button>
+        <a href="support.html" data-i18n="nav.support">サポート</a>
       </nav>
     </div>
   </header>
 
   <main class="container legal-page">
-    <p class="section-label">Legal</p>
-    <h1>利用規約</h1>
-    <p class="legal-meta">最終更新日: 2025年1月1日</p>
+    <p class="section-label" data-i18n="label.legal">Legal</p>
+    <h1 data-i18n="terms.title">利用規約</h1>
+    <p class="legal-meta" data-i18n="terms.updated">最終更新日: 2025年1月1日</p>
 
     <section class="legal-section">
-      <h2>1. サービスの利用</h2>
-      <p>Chessenger（以下「本サービス」）は、対面チェスのマッチングプラットフォームです。本サービスを利用するには、13歳以上であり、本利用規約に同意する必要があります。アカウントの作成時に正確な情報を提供し、アカウントのセキュリティを維持する責任はユーザーにあります。</p>
+      <h2 data-i18n="terms.s1.title">1. サービスの利用</h2>
+      <p data-i18n="terms.s1.body"></p>
     </section>
-
     <section class="legal-section">
-      <h2>2. ユーザーの行動規範</h2>
-      <p>ユーザーは以下の行為を禁止されています：
-・他のユーザーへの嫌がらせ、脅迫、差別的行為
-・虚偽の情報の提供
-・スパムや商業目的の不正利用
-・他のユーザーの個人情報の無断収集・公開
-・不正な手段によるレーティング操作
-・本サービスの正常な運営を妨害する行為</p>
+      <h2 data-i18n="terms.s2.title">2. ユーザーの行動規範</h2>
+      <p data-i18n="terms.s2.body"></p>
     </section>
-
     <section class="legal-section">
-      <h2>3. 対局について</h2>
-      <p>本サービスはプレイヤー同士のマッチングを提供するものであり、実際の対局場所や条件についてはユーザー間で合意の上で決定してください。対局中のトラブルについて、本サービスは直接的な責任を負いません。公共の場での対局を推奨します。</p>
+      <h2 data-i18n="terms.s3.title">3. 対局について</h2>
+      <p data-i18n="terms.s3.body"></p>
     </section>
-
     <section class="legal-section">
-      <h2>4. コンテンツとデータ</h2>
-      <p>ユーザーが投稿するコンテンツ（プロフィール情報、タイムラインの投稿、メッセージ等）の権利はユーザーに帰属します。ただし、本サービスの運営に必要な範囲で利用する権利をChessengerに付与するものとします。</p>
+      <h2 data-i18n="terms.s4.title">4. コンテンツとデータ</h2>
+      <p data-i18n="terms.s4.body"></p>
     </section>
-
     <section class="legal-section">
-      <h2>5. アカウントの停止・削除</h2>
-      <p>本利用規約に違反した場合、事前の通知なくアカウントを停止または削除する場合があります。ユーザーは設定画面からいつでもアカウントを削除できます。</p>
+      <h2 data-i18n="terms.s5.title">5. アカウントの停止・削除</h2>
+      <p data-i18n="terms.s5.body"></p>
     </section>
-
     <section class="legal-section">
-      <h2>6. 免責事項</h2>
-      <p>本サービスは「現状のまま」提供されます。サービスの中断、データの損失、ユーザー間のトラブルについて、法律が許容する最大限の範囲で責任を負いません。</p>
+      <h2 data-i18n="terms.s6.title">6. 免責事項</h2>
+      <p data-i18n="terms.s6.body"></p>
     </section>
-
     <section class="legal-section">
-      <h2>7. 変更について</h2>
-      <p>本利用規約は予告なく変更される場合があります。重要な変更がある場合は、アプリ内通知またはメールでお知らせします。</p>
+      <h2 data-i18n="terms.s7.title">7. 変更について</h2>
+      <p data-i18n="terms.s7.body"></p>
     </section>
   </main>
 
   <footer class="site-footer">
     <div class="container footer-grid">
-      <div>© 2025 Chessenger</div>
+      <div class="footer-brand" data-i18n="footer.copy">© 2025 Chessenger</div>
       <div class="footer-links">
-        <a href="index.html">トップ</a>
-        <a href="privacy.html">プライバシー</a>
-        <a href="support.html">サポート</a>
+        <a href="index.html" data-i18n="nav.home">トップ</a>
+        <a href="privacy.html" data-i18n="nav.privacy">プライバシー</a>
+        <a href="support.html" data-i18n="nav.support">サポート</a>
       </div>
     </div>
   </footer>

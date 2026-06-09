@@ -121,6 +121,26 @@ img {
   color: #fff !important;
 }
 
+.lang-toggle {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+  font-family: var(--font);
+}
+
+.lang-toggle:hover {
+  color: var(--accent);
+  border-color: rgba(124, 58, 237, 0.25);
+  background: var(--accent-soft);
+}
+
 /* ── Hero ── */
 .hero-wrap {
   position: relative;

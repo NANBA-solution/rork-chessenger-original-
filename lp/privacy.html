@@ -3,12 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Chessenger プライバシーポリシー" />
-  <title>プライバシーポリシー — Chessenger</title>
+  <meta name="description" content="" />
+  <title>Privacy — Chessenger</title>
   <link rel="icon" href="assets/app-icon.png" />
   <link rel="stylesheet" href="styles.css" />
+  <script src="i18n.js" defer></script>
 </head>
-<body>
+<body data-page="privacy">
   <header class="site-header">
     <div class="inner">
       <a class="brand" href="index.html">
@@ -16,85 +17,60 @@
         Chessenger
       </a>
       <nav class="nav">
-        <a href="index.html">トップ</a>
-        <a href="support.html">サポート</a>
-        <a href="terms.html">利用規約</a>
+        <a href="index.html" data-i18n="nav.home">トップ</a>
+        <a href="support.html" data-i18n="nav.support">サポート</a>
+        <button type="button" class="lang-toggle" data-lang-toggle data-i18n="lang.switch">EN</button>
+        <a href="terms.html" data-i18n="nav.terms">利用規約</a>
       </nav>
     </div>
   </header>
 
   <main class="container legal-page">
-    <p class="section-label">Legal</p>
-    <h1>プライバシーポリシー</h1>
-    <p class="legal-meta">最終更新日: 2025年1月1日</p>
+    <p class="section-label" data-i18n="label.legal">Legal</p>
+    <h1 data-i18n="privacy.title">プライバシーポリシー</h1>
+    <p class="legal-meta" data-i18n="privacy.updated">最終更新日: 2025年1月1日</p>
 
     <section class="legal-section">
-      <h2>1. 収集する情報</h2>
-      <p>本サービスでは以下の情報を収集します：
-・アカウント情報（名前、メールアドレス、プロフィール写真）
-・チェスのレーティング情報
-・位置情報（ユーザーが許可した場合のみ）
-・対局履歴と統計
-・メッセージの内容
-・デバイス情報とアプリの利用状況</p>
+      <h2 data-i18n="privacy.s1.title">1. 収集する情報</h2>
+      <p data-i18n="privacy.s1.body"></p>
     </section>
-
     <section class="legal-section">
-      <h2>2. 情報の利用目的</h2>
-      <p>収集した情報は以下の目的で利用します：
-・プレイヤー同士のマッチング
-・サービスの改善と最適化
-・カスタマーサポートの提供
-・不正行為の検出と防止
-・利用統計の分析</p>
+      <h2 data-i18n="privacy.s2.title">2. 情報の利用目的</h2>
+      <p data-i18n="privacy.s2.body"></p>
     </section>
-
     <section class="legal-section">
-      <h2>3. 情報の共有</h2>
-      <p>ユーザーの個人情報を第三者に販売することはありません。以下の場合に限り情報を共有する場合があります：
-・ユーザーの同意がある場合
-・法的要求に応じる必要がある場合
-・サービスの運営に必要な業務委託先との共有</p>
+      <h2 data-i18n="privacy.s3.title">3. 情報の共有</h2>
+      <p data-i18n="privacy.s3.body"></p>
     </section>
-
     <section class="legal-section">
-      <h2>4. 位置情報について</h2>
-      <p>位置情報はプレイヤーのマッチングにのみ使用され、アプリの設定でいつでもオフにできます。アプリ起動中以外は位置情報を取得しません。正確な位置情報は他のプレイヤーに公開されず、おおよその距離のみが表示されます。</p>
+      <h2 data-i18n="privacy.s4.title">4. 位置情報について</h2>
+      <p data-i18n="privacy.s4.body"></p>
     </section>
-
     <section class="legal-section">
-      <h2>5. データの保護</h2>
-      <p>業界標準のセキュリティ対策を実施し、ユーザーデータの保護に努めています。通信は暗号化され、データは安全なサーバーに保管されます。</p>
+      <h2 data-i18n="privacy.s5.title">5. データの保護</h2>
+      <p data-i18n="privacy.s5.body"></p>
     </section>
-
     <section class="legal-section">
-      <h2>6. ユーザーの権利</h2>
-      <p>ユーザーは以下の権利を有します：
-・自己のデータへのアクセス権
-・データの修正・削除の要求
-・データ処理への同意の撤回
-・データの出力要求
-上記の権利の行使は、設定画面またはサポートへのお問い合わせにより可能です。</p>
+      <h2 data-i18n="privacy.s6.title">6. ユーザーの権利</h2>
+      <p data-i18n="privacy.s6.body"></p>
     </section>
-
     <section class="legal-section">
-      <h2>7. 翻訳機能について</h2>
-      <p>翻訳ボタンを押した場合、選択したテキスト（投稿・コメント・メッセージ等）が翻訳サービスの提供のため、第三者（Google Cloud Translation API、MyMemory API 等）に送信されます。送信されたテキストは翻訳目的でのみ使用され、当該サービスによる学習・他目的利用は行われません。翻訳はユーザーがボタンを押した場合にのみ実行されます。</p>
+      <h2 data-i18n="privacy.s7.title">7. 翻訳機能について</h2>
+      <p data-i18n="privacy.s7.body"></p>
     </section>
-
     <section class="legal-section">
-      <h2>8. お問い合わせ</h2>
-      <p>プライバシーに関するお問い合わせは、<a href="mailto:chessenger.co.ltd@gmail.com">chessenger.co.ltd@gmail.com</a> までご連絡ください。通報もメールで承っております。</p>
+      <h2 data-i18n="privacy.s8.title">8. お問い合わせ</h2>
+      <p data-i18n-html="privacy.s8.body"></p>
     </section>
   </main>
 
   <footer class="site-footer">
     <div class="container footer-grid">
-      <div>© 2025 Chessenger</div>
+      <div class="footer-brand" data-i18n="footer.copy">© 2025 Chessenger</div>
       <div class="footer-links">
-        <a href="index.html">トップ</a>
-        <a href="terms.html">利用規約</a>
-        <a href="support.html">サポート</a>
+        <a href="index.html" data-i18n="nav.home">トップ</a>
+        <a href="terms.html" data-i18n="nav.terms">利用規約</a>
+        <a href="support.html" data-i18n="nav.support">サポート</a>
       </div>
     </div>
   </footer>
